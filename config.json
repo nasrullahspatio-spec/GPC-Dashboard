@@ -1,0 +1,11 @@
+{
+  "webAppUrl": "https://script.google.com/macros/s/AKfycbxFQ9vmOSxtf9ouodhx1QY-T3rsGP8AVVZvDIOXxINMrjvEl9dQupZxRCd9CtA4nabyzw/exec",
+  "dashboardTitle": "Punjab GIS - Lahore Division Survey Operations",
+  "districts": [
+    "Lahore",
+    "Kasur",
+    "Sheikhupura",
+    "Nankana Sahib"
+  ],
+  "refreshIntervalMinutes": 5
+}
