@@ -1,1014 +1,705 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Punjab GIS — Lahore Division Survey Operations</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { font-family: 'Inter', sans-serif; }
-        body { background: #0b1120; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(148, 163, 184, 0.08); }
-        .card-hover { transition: all 0.2s ease; }
-        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); border-color: rgba(59, 130, 246, 0.3); }
-        .tab-btn { transition: all 0.2s; }
-        .tab-btn.active { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); }
-        .progress-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.06); overflow: hidden; }
-        .progress-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
-        .kpi-value { font-size: 1.5rem; font-weight: 700; line-height: 1; }
-        .kpi-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; }
-        .district-card { min-height: 140px; }
-        .chart-container { position: relative; height: 220px; }
-        .table-container { max-height: 60vh; overflow: auto; }
-        .table-container::-webkit-scrollbar { width: 6px; height: 6px; }
-        .table-container::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.2); border-radius: 3px; }
-        .badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
-        .status-done { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-        .status-pending { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-        .status-issue { background: rgba(239, 68, 68, 0.15); color: #f87171; }
-        .pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .loading-spinner { width: 40px; height: 40px; border: 3px solid rgba(59,130,246,0.2); border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .fade-in { animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .remark-text { font-style: italic; color: #cbd5e1; }
-        .search-input { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148,163,184,0.15); }
-        .search-input:focus { outline: none; border-color: rgba(59,130,246,0.5); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-        .page-btn { min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 0.75rem; }
-        .page-btn.active { background: #3b82f6; color: white; }
-        .issue-type-calling { border-left: 3px solid #f59e0b; }
-        .issue-type-survey { border-left: 3px solid #ef4444; }
-        [x-cloak] { display: none !important; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Punjab GIS — Lahore Division Survey Operations</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{font-family:'Inter',sans-serif;}body{background:#0b1120;}
+.glass{background:rgba(30,41,59,0.7);backdrop-filter:blur(12px);border:1px solid rgba(148,163,184,0.08);}
+.card-hover{transition:all 0.2s ease;}.card-hover:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,0.3);border-color:rgba(59,130,246,0.3);}
+.tab-btn{transition:all 0.2s;}.tab-btn.active{background:rgba(59,130,246,0.15);color:#60a5fa;border-color:rgba(59,130,246,0.4);}
+.progress-bar{height:6px;border-radius:3px;background:rgba(255,255,255,0.06);overflow:hidden;}
+.progress-fill{height:100%;border-radius:3px;transition:width 0.8s ease;}
+.kpi-value{font-size:1.5rem;font-weight:700;line-height:1;}
+.kpi-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;color:#94a3b8;}
+.district-card{min-height:140px;}
+.chart-container{position:relative;height:220px;}
+.table-container{max-height:60vh;overflow:auto;}
+.table-container::-webkit-scrollbar{width:6px;height:6px;}
+.table-container::-webkit-scrollbar-thumb{background:rgba(148,163,184,0.2);border-radius:3px;}
+.badge{font-size:0.65rem;padding:2px 8px;border-radius:999px;font-weight:600;}
+.status-done{background:rgba(16,185,129,0.15);color:#34d399;}
+.status-pending{background:rgba(245,158,11,0.15);color:#fbbf24;}
+.status-issue{background:rgba(239,68,68,0.15);color:#f87171;}
+.pulse{animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+.loading-spinner{width:40px;height:40px;border:3px solid rgba(59,130,246,0.2);border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.fade-in{animation:fadeIn 0.4s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.remark-text{font-style:italic;color:#cbd5e1;}
+.search-input{background:rgba(15,23,42,0.8);border:1px solid rgba(148,163,184,0.15);}
+.search-input:focus{outline:none;border-color:rgba(59,130,246,0.5);box-shadow:0 0 0 3px rgba(59,130,246,0.1);}
+.page-btn{min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:0.75rem;}
+.page-btn.active{background:#3b82f6;color:white;}
+.issue-type-calling{border-left:3px solid #f59e0b;}
+.issue-type-survey{border-left:3px solid #ef4444;}
+.debug-panel{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);}
+</style>
+<base target="_blank">
 </head>
 <body class="text-slate-300 min-h-screen">
 
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- LOADING SCREEN -->
-    <!-- ═══════════════════════════════════════════ -->
-    <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950">
-        <div class="loading-spinner mb-4"></div>
-        <p class="text-slate-400 text-sm">Loading dashboard configuration...</p>
-    </div>
-
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- ERROR SCREEN (hidden by default) -->
-    <!-- ═══════════════════════════════════════════ -->
-    <div id="errorScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 hidden">
-        <div class="text-5xl mb-4">⚠️</div>
-        <h2 class="text-xl font-bold text-white mb-2" id="errorTitle">Configuration Error</h2>
-        <p class="text-slate-400 text-sm max-w-md text-center mb-6" id="errorMessage">Something went wrong.</p>
-        <div class="glass rounded-lg p-4 max-w-lg w-full mx-4">
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">How to fix:</h3>
-            <ol class="text-sm text-slate-300 space-y-2 list-decimal list-inside" id="errorSteps">
-                <li>Make sure <code class="bg-slate-800 px-1 rounded text-blue-400">config.json</code> is in the same folder as this HTML file</li>
-                <li>Open <code class="bg-slate-800 px-1 rounded text-blue-400">config.json</code> and paste your Apps Script URL</li>
-                <li>Refresh this page</li>
-            </ol>
-        </div>
-        <button onclick="location.reload()" class="mt-6 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition">Retry</button>
-    </div>
-
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- MAIN APP (hidden until loaded) -->
-    <!-- ═══════════════════════════════════════════ -->
-    <div id="app" class="hidden">
-
-        <!-- Header -->
-        <header class="sticky top-0 z-40 glass border-b border-slate-800/50">
-            <div class="max-w-[1600px] mx-auto px-4 py-3 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-blue-600/20 flex items-center justify-center">
-                        <i class="fas fa-map-marked-alt text-blue-400 text-sm"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-sm font-bold text-white leading-tight">Punjab GIS</h1>
-                        <p class="text-[10px] text-slate-500 uppercase tracking-wider">Lahore Division Survey Operations</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 pulse"></span>
-                        <span class="text-[11px] font-medium text-emerald-400">Live</span>
-                    </div>
-                    <div class="text-right hidden sm:block">
-                        <p class="text-[10px] text-slate-500">Last Updated</p>
-                        <p class="text-xs font-medium text-slate-300" id="lastUpdated">--</p>
-                    </div>
-                    <button onclick="fetchData()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition" title="Refresh">
-                        <i class="fas fa-sync-alt text-xs text-slate-400"></i>
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <!-- Tab Navigation -->
-        <nav class="max-w-[1600px] mx-auto px-4 pt-4 pb-2">
-            <div class="flex gap-1 p-1 rounded-xl bg-slate-900/50 border border-slate-800/50 w-fit">
-                <button class="tab-btn active px-4 py-2 rounded-lg text-xs font-medium border border-transparent" data-tab="overview" onclick="switchTab('overview')">
-                    <i class="fas fa-chart-pie mr-1.5"></i>Overview
-                </button>
-                <button class="tab-btn px-4 py-2 rounded-lg text-xs font-medium border border-transparent text-slate-500" data-tab="issues" onclick="switchTab('issues')">
-                    <i class="fas fa-exclamation-triangle mr-1.5"></i>Issues <span id="issuesBadge" class="badge bg-red-500/20 text-red-400 ml-1 hidden">0</span>
-                </button>
-                <button class="tab-btn px-4 py-2 rounded-lg text-xs font-medium border border-transparent text-slate-500" data-tab="surveyors" onclick="switchTab('surveyors')">
-                    <i class="fas fa-users mr-1.5"></i>Surveyors
-                </button>
-                <button class="tab-btn px-4 py-2 rounded-lg text-xs font-medium border border-transparent text-slate-500" data-tab="raw" onclick="switchTab('raw')">
-                    <i class="fas fa-table mr-1.5"></i>Raw Data
-                </button>
-            </div>
-        </nav>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 1: OVERVIEW -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div id="tab-overview" class="tab-content max-w-[1600px] mx-auto px-4 pb-8 fade-in">
-
-            <!-- KPI Row -->
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-4">
-                <div class="glass rounded-xl p-3 card-hover">
-                    <p class="kpi-label mb-1.5">Total PSIDs</p>
-                    <p class="kpi-value text-white" id="kpiTotal">0</p>
-                    <p class="text-[10px] text-slate-500 mt-1">All received</p>
-                </div>
-                <div class="glass rounded-xl p-3 card-hover">
-                    <p class="kpi-label mb-1.5 text-emerald-400">Surveyed</p>
-                    <p class="kpi-value text-emerald-400" id="kpiDone">0</p>
-                    <p class="text-[10px] text-slate-500 mt-1">Completed</p>
-                </div>
-                <div class="glass rounded-xl p-3 card-hover">
-                    <p class="kpi-label mb-1.5 text-amber-400">Pending</p>
-                    <p class="kpi-value text-amber-400" id="kpiPending">0</p>
-                    <p class="text-[10px] text-slate-500 mt-1">In backlog</p>
-                </div>
-                <div class="glass rounded-xl p-3 card-hover">
-                    <p class="kpi-label mb-1.5 text-blue-400">Progress</p>
-                    <p class="kpi-value text-blue-400" id="kpiProgress">0%</p>
-                    <p class="text-[10px] text-slate-500 mt-1">Completion rate</p>
-                </div>
-                <div class="glass rounded-xl p-3 card-hover">
-                    <p class="kpi-label mb-1.5 text-purple-400">Parcels</p>
-                    <p class="kpi-value text-purple-400" id="kpiParcels">0</p>
-                    <p class="text-[10px] text-slate-500 mt-1">Total mapped</p>
-                </div>
-                <div class="glass rounded-xl p-3 card-hover">
-                    <p class="kpi-label mb-1.5 text-cyan-400">Avg Days</p>
-                    <p class="kpi-value text-cyan-400" id="kpiAvgDays">0</p>
-                    <p class="text-[10px] text-slate-500 mt-1">To complete</p>
-                </div>
-                <div class="glass rounded-xl p-3 card-hover">
-                    <p class="kpi-label mb-1.5 text-red-400">Issue Rate</p>
-                    <p class="kpi-value text-red-400" id="kpiIssueRate">0%</p>
-                    <p class="text-[10px] text-slate-500 mt-1">With remarks</p>
-                </div>
-            </div>
-
-            <!-- District Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4" id="districtCards">
-                <!-- Injected by JS -->
-            </div>
-
-            <!-- Charts Row 1 -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
-                <div class="glass rounded-xl p-4">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Survey Status</h3>
-                    <div class="chart-container">
-                        <canvas id="chartStatus"></canvas>
-                    </div>
-                </div>
-                <div class="glass rounded-xl p-4">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">DGPS vs Mobile by District</h3>
-                    <div class="chart-container">
-                        <canvas id="chartMethod"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Charts Row 2 -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                <div class="glass rounded-xl p-4">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Top 5 Surveyors</h3>
-                    <div class="chart-container">
-                        <canvas id="chartSurveyors"></canvas>
-                    </div>
-                </div>
-                <div class="glass rounded-xl p-4">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Last 14 Days — Surveys Completed</h3>
-                    <div class="chart-container">
-                        <canvas id="chartTrend"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 2: ISSUES & REMARKS -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div id="tab-issues" class="tab-content max-w-[1600px] mx-auto px-4 pb-8 hidden fade-in">
-            <div class="glass rounded-xl p-4 mb-4">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div class="flex items-center gap-2">
-                        <button class="issue-filter active px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600/20 text-blue-400 border border-blue-500/30" data-filter="all" onclick="filterIssues('all')">All Remarks</button>
-                        <button class="issue-filter px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700" data-filter="calling" onclick="filterIssues('calling')">Calling Remarks</button>
-                        <button class="issue-filter px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700" data-filter="survey" onclick="filterIssues('survey')">Survey Remarks</button>
-                    </div>
-                    <div class="flex items-center gap-4 text-xs">
-                        <span class="text-slate-500">Total with remarks: <strong class="text-white" id="issuesTotalCount">0</strong></span>
-                        <span class="text-amber-500">Calling: <strong id="issuesCallingCount">0</strong></span>
-                        <span class="text-red-400">Survey: <strong id="issuesSurveyCount">0</strong></span>
-                    </div>
-                </div>
-            </div>
-            <div class="glass rounded-xl p-4 mb-4">
-                <input type="text" id="issuesSearch" placeholder="Search by PSID, Owner, District, or Remark text..." 
-                    class="search-input w-full px-4 py-2.5 rounded-lg text-sm text-white placeholder-slate-500"
-                    oninput="searchIssues()">
-            </div>
-            <div class="glass rounded-xl overflow-hidden">
-                <div class="table-container">
-                    <table class="w-full text-xs">
-                        <thead class="bg-slate-900/80 sticky top-0 z-10">
-                            <tr>
-                                <th class="text-left px-4 py-2.5 font-semibold text-slate-400">PSID</th>
-                                <th class="text-left px-4 py-2.5 font-semibold text-slate-400">District</th>
-                                <th class="text-left px-4 py-2.5 font-semibold text-slate-400">Surveyor</th>
-                                <th class="text-left px-4 py-2.5 font-semibold text-slate-400">Status</th>
-                                <th class="text-left px-4 py-2.5 font-semibold text-slate-400">Type</th>
-                                <th class="text-left px-4 py-2.5 font-semibold text-slate-400">Remarks</th>
-                            </tr>
-                        </thead>
-                        <tbody id="issuesTableBody" class="divide-y divide-slate-800/50">
-                            <!-- Injected by JS -->
-                        </tbody>
-                    </table>
-                </div>
-                <div id="issuesEmpty" class="hidden py-12 text-center text-slate-500 text-sm">
-                    <i class="fas fa-check-circle text-3xl text-emerald-500/30 mb-2"></i>
-                    <p>No remarks found for the selected filter.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 3: SURVEYOR PERFORMANCE -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div id="tab-surveyors" class="tab-content max-w-[1600px] mx-auto px-4 pb-8 hidden fade-in">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <!-- Table -->
-                <div class="lg:col-span-2 glass rounded-xl overflow-hidden">
-                    <div class="px-4 py-3 border-b border-slate-800/50 flex items-center justify-between">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Surveyor Leaderboard</h3>
-                        <span class="text-[10px] text-slate-500">Sorted by completed surveys</span>
-                    </div>
-                    <div class="table-container" style="max-height: 70vh;">
-                        <table class="w-full text-xs">
-                            <thead class="bg-slate-900/80 sticky top-0 z-10">
-                                <tr>
-                                    <th class="text-left px-4 py-2.5 font-semibold text-slate-400 w-10">#</th>
-                                    <th class="text-left px-4 py-2.5 font-semibold text-slate-400">Surveyor</th>
-                                    <th class="text-center px-4 py-2.5 font-semibold text-slate-400">Done</th>
-                                    <th class="text-center px-4 py-2.5 font-semibold text-slate-400">Pending</th>
-                                    <th class="text-center px-4 py-2.5 font-semibold text-slate-400">Total</th>
-                                    <th class="text-center px-4 py-2.5 font-semibold text-slate-400">Avg Parcels</th>
-                                    <th class="text-center px-4 py-2.5 font-semibold text-slate-400">Avg Days</th>
-                                </tr>
-                            </thead>
-                            <tbody id="surveyorsTableBody" class="divide-y divide-slate-800/50">
-                                <!-- Injected by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <!-- Chart -->
-                <div class="glass rounded-xl p-4">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Surveyor Productivity</h3>
-                    <div class="chart-container" style="height: 300px;">
-                        <canvas id="chartSurveyorBar"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 4: RAW DATA -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div id="tab-raw" class="tab-content max-w-[1600px] mx-auto px-4 pb-8 hidden fade-in">
-            <div class="glass rounded-xl p-4 mb-4">
-                <div class="flex flex-wrap items-center gap-3">
-                    <input type="text" id="rawSearch" placeholder="Search PSID or Owner Name..." 
-                        class="search-input px-4 py-2 rounded-lg text-sm text-white placeholder-slate-500 flex-1 min-w-[200px]"
-                        oninput="filterRawData()">
-                    <select id="rawFilterDistrict" class="search-input px-3 py-2 rounded-lg text-sm text-white min-w-[140px]" onchange="filterRawData()">
-                        <option value="">All Districts</option>
-                    </select>
-                    <select id="rawFilterStatus" class="search-input px-3 py-2 rounded-lg text-sm text-white min-w-[120px]" onchange="filterRawData()">
-                        <option value="">All Status</option>
-                        <option value="Done">Done</option>
-                        <option value="Pending">Pending</option>
-                    </select>
-                    <select id="rawFilterSurveyor" class="search-input px-3 py-2 rounded-lg text-sm text-white min-w-[140px]" onchange="filterRawData()">
-                        <option value="">All Surveyors</option>
-                    </select>
-                    <span class="text-xs text-slate-500 whitespace-nowrap">Showing <strong id="rawShowing" class="text-white">0</strong> of <strong id="rawTotal" class="text-white">0</strong></span>
-                </div>
-            </div>
-            <div class="glass rounded-xl overflow-hidden">
-                <div class="table-container">
-                    <table class="w-full text-[11px]">
-                        <thead class="bg-slate-900/80 sticky top-0 z-10">
-                            <tr>
-                                <th class="text-left px-3 py-2 font-semibold text-slate-400">PSID</th>
-                                <th class="text-left px-3 py-2 font-semibold text-slate-400">District</th>
-                                <th class="text-left px-3 py-2 font-semibold text-slate-400">Tehsil</th>
-                                <th class="text-left px-3 py-2 font-semibold text-slate-400">Mouza</th>
-                                <th class="text-left px-3 py-2 font-semibold text-slate-400">Khasra</th>
-                                <th class="text-left px-3 py-2 font-semibold text-slate-400">Owner</th>
-                                <th class="text-left px-3 py-2 font-semibold text-slate-400">Surveyor</th>
-                                <th class="text-center px-3 py-2 font-semibold text-slate-400">Status</th>
-                                <th class="text-center px-3 py-2 font-semibold text-slate-400">Parcels</th>
-                                <th class="text-center px-3 py-2 font-semibold text-slate-400">Method</th>
-                                <th class="text-left px-3 py-2 font-semibold text-slate-400">Survey Remarks</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rawTableBody" class="divide-y divide-slate-800/50">
-                            <!-- Injected by JS -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="flex items-center justify-between px-4 py-3 border-t border-slate-800/50">
-                    <button onclick="changePage(-1)" class="page-btn bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <div class="flex gap-1" id="rawPagination"></div>
-                    <button onclick="changePage(1)" class="page-btn bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- JAVASCRIPT -->
-    <!-- ═══════════════════════════════════════════ -->
-    <script>
-        // ═══════════════════════════════════════════
-        // GLOBAL STATE
-        // ═══════════════════════════════════════════
-        let appConfig = null;
-        let rawData = [];
-        let processedData = null;
-        let charts = {};
-        let currentTab = 'overview';
-        let issuesFilter = 'all';
-        let rawPage = 1;
-        let rawPerPage = 50;
-        let filteredRawData = [];
-
-        // ═══════════════════════════════════════════
-        // INITIALIZATION
-        // ═══════════════════════════════════════════
-        async function init() {
-            try {
-                // Load config.json
-                const configRes = await fetch('config.json?v=' + Date.now());
-                if (!configRes.ok) throw new Error('Config file not found');
-                appConfig = await configRes.json();
-
-                if (!appConfig.webAppUrl || appConfig.webAppUrl.includes('YOUR_')) {
-                    throw new Error('Apps Script URL not configured in config.json');
-                }
-
-                // Fetch data
-                await fetchData();
-
-                // Hide loading, show app
-                document.getElementById('loadingScreen').classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
-
-            } catch (err) {
-                showError(err.message);
-            }
-        }
-
-        function showError(message) {
-            document.getElementById('loadingScreen').classList.add('hidden');
-            document.getElementById('errorScreen').classList.remove('hidden');
-            document.getElementById('errorMessage').textContent = message;
-        }
-
-        // ═══════════════════════════════════════════
-        // DATA FETCHING
-        // ═══════════════════════════════════════════
-        async function fetchData() {
-            const spinner = document.querySelector('.fa-sync-alt');
-            if (spinner) spinner.classList.add('fa-spin');
-
-            try {
-                const res = await fetch(appConfig.webAppUrl + '?t=' + Date.now(), {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                });
-
-                if (!res.ok) throw new Error('Failed to fetch data from Apps Script');
-
-                const json = await res.json();
-
-                if (!json.success && json.errors && json.errors.length > 0) {
-                    console.warn('Apps Script warnings:', json.errors);
-                }
-
-                rawData = json.data || [];
-                document.getElementById('lastUpdated').textContent = new Date().toLocaleString('en-GB', {
-                    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
-                });
-
-                processData();
-                renderAll();
-
-            } catch (err) {
-                alert('Error loading data: ' + err.message);
-            } finally {
-                if (spinner) spinner.classList.remove('fa-spin');
-            }
-        }
-
-        // ═══════════════════════════════════════════
-        // DATA PROCESSING
-        // ═══════════════════════════════════════════
-        function processData() {
-            const data = rawData;
-            const districts = ['Lahore', 'Kasur', 'Sheikhupura', 'Nankana Sahib'];
-
-            // Basic counts
-            const total = data.length;
-            const done = data.filter(r => String(r.surveyStatus || '').toLowerCase() === 'done').length;
-            const pending = data.filter(r => String(r.surveyStatus || '').toLowerCase() === 'pending').length;
-            const progress = total > 0 ? Math.round((done / total) * 100) : 0;
-
-            // Total parcels
-            const totalParcels = data.reduce((sum, r) => {
-                const val = parseFloat(r.numberOfParcelsCreated);
-                return sum + (isNaN(val) ? 0 : val);
-            }, 0);
-
-            // Avg days to complete
-            let totalDays = 0, completedWithDates = 0;
-            data.forEach(r => {
-                if (String(r.surveyStatus || '').toLowerCase() === 'done' && r.dateOfAssign && r.surveyCompletedDate) {
-                    const start = new Date(r.dateOfAssign);
-                    const end = new Date(r.surveyCompletedDate);
-                    if (!isNaN(start) && !isNaN(end)) {
-                        const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-                        if (days >= 0) { totalDays += days; completedWithDates++; }
-                    }
-                }
-            });
-            const avgDays = completedWithDates > 0 ? (totalDays / completedWithDates).toFixed(1) : '0';
-
-            // Issue rate
-            const withIssues = data.filter(r => r.surveyRemarks && String(r.surveyRemarks).trim() !== '').length;
-            const issueRate = total > 0 ? Math.round((withIssues / total) * 100) : 0;
-
-            // District breakdown
-            const districtStats = {};
-            districts.forEach(d => {
-                const dData = data.filter(r => String(r.district || '').toLowerCase() === d.toLowerCase());
-                const dDone = dData.filter(r => String(r.surveyStatus || '').toLowerCase() === 'done').length;
-                const dPending = dData.filter(r => String(r.surveyStatus || '').toLowerCase() === 'pending').length;
-                const dTotal = dData.length;
-                const dParcels = dData.reduce((sum, r) => {
-                    const val = parseFloat(r.numberOfParcelsCreated);
-                    return sum + (isNaN(val) ? 0 : val);
-                }, 0);
-                districtStats[d] = {
-                    total: dTotal,
-                    done: dDone,
-                    pending: dPending,
-                    progress: dTotal > 0 ? Math.round((dDone / dTotal) * 100) : 0,
-                    parcels: dParcels
-                };
-            });
-
-            // DGPS vs Mobile by district
-            const methodStats = {};
-            districts.forEach(d => {
-                const dData = data.filter(r => String(r.district || '').toLowerCase() === d.toLowerCase());
-                const dgps = dData.filter(r => {
-                    const m = String(r.surveyedByDgpsOrMobile || '').toLowerCase();
-                    return m.includes('dgps');
-                }).length;
-                const mobile = dData.filter(r => {
-                    const m = String(r.surveyedByDgpsOrMobile || '').toLowerCase();
-                    return m.includes('mobile');
-                }).length;
-                methodStats[d] = { dgps, mobile };
-            });
-
-            // Top surveyors
-            const surveyorMap = {};
-            data.forEach(r => {
-                const name = String(r.surveyorName || 'Unknown').trim();
-                if (!name || name === 'Unknown') return;
-                if (!surveyorMap[name]) surveyorMap[name] = { done: 0, pending: 0, total: 0, parcels: 0, days: 0, count: 0 };
-                surveyorMap[name].total++;
-                if (String(r.surveyStatus || '').toLowerCase() === 'done') {
-                    surveyorMap[name].done++;
-                    const parcels = parseFloat(r.numberOfParcelsCreated);
-                    surveyorMap[name].parcels += isNaN(parcels) ? 0 : parcels;
-                    if (r.dateOfAssign && r.surveyCompletedDate) {
-                        const start = new Date(r.dateOfAssign);
-                        const end = new Date(r.surveyCompletedDate);
-                        if (!isNaN(start) && !isNaN(end)) {
-                            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-                            if (days >= 0) { surveyorMap[name].days += days; surveyorMap[name].count++; }
-                        }
-                    }
-                } else {
-                    surveyorMap[name].pending++;
-                }
-            });
-
-            const surveyorList = Object.entries(surveyorMap)
-                .map(([name, stats]) => ({
-                    name,
-                    ...stats,
-                    avgParcels: stats.done > 0 ? (stats.parcels / stats.done).toFixed(1) : '0',
-                    avgDays: stats.count > 0 ? (stats.days / stats.count).toFixed(1) : '0'
-                }))
-                .sort((a, b) => b.done - a.done);
-
-            // 14-day trend
-            const today = new Date();
-            const trendMap = {};
-            for (let i = 13; i >= 0; i--) {
-                const d = new Date(today);
-                d.setDate(d.getDate() - i);
-                const key = d.toISOString().split('T')[0];
-                trendMap[key] = 0;
-            }
-            data.forEach(r => {
-                if (String(r.surveyStatus || '').toLowerCase() === 'done' && r.surveyCompletedDate) {
-                    const dateKey = String(r.surveyCompletedDate).split('T')[0];
-                    if (trendMap[dateKey] !== undefined) trendMap[dateKey]++;
-                }
-            });
-            const trendLabels = Object.keys(trendMap).map(d => {
-                const date = new Date(d);
-                return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-            });
-            const trendValues = Object.values(trendMap);
-
-            // Issues data
-            const issuesData = data.filter(r => 
-                (r.callingRemarks && String(r.callingRemarks).trim() !== '') ||
-                (r.surveyRemarks && String(r.surveyRemarks).trim() !== '')
-            ).map(r => ({
-                ...r,
-                hasCalling: !!(r.callingRemarks && String(r.callingRemarks).trim() !== ''),
-                hasSurvey: !!(r.surveyRemarks && String(r.surveyRemarks).trim() !== '')
-            }));
-
-            processedData = {
-                total, done, pending, progress, totalParcels, avgDays, issueRate,
-                districtStats, methodStats, surveyorList, trendLabels, trendValues,
-                issuesData,
-                issuesCalling: issuesData.filter(r => r.hasCalling).length,
-                issuesSurvey: issuesData.filter(r => r.hasSurvey).length
-            };
-        }
-
-        // ═══════════════════════════════════════════
-        // RENDER ALL
-        // ═══════════════════════════════════════════
-        function renderAll() {
-            renderKPIs();
-            renderDistrictCards();
-            renderCharts();
-            renderIssues();
-            renderSurveyors();
-            populateRawFilters();
-            filterRawData();
-            updateIssuesBadge();
-        }
-
-        function renderKPIs() {
-            const d = processedData;
-            document.getElementById('kpiTotal').textContent = d.total.toLocaleString();
-            document.getElementById('kpiDone').textContent = d.done.toLocaleString();
-            document.getElementById('kpiPending').textContent = d.pending.toLocaleString();
-            document.getElementById('kpiProgress').textContent = d.progress + '%';
-            document.getElementById('kpiParcels').textContent = Math.round(d.totalParcels).toLocaleString();
-            document.getElementById('kpiAvgDays').textContent = d.avgDays;
-            document.getElementById('kpiIssueRate').textContent = d.issueRate + '%';
-        }
-
-        function renderDistrictCards() {
-            const container = document.getElementById('districtCards');
-            const districts = ['Lahore', 'Kasur', 'Sheikhupura', 'Nankana Sahib'];
-            const colors = {
-                'Lahore': 'from-blue-500/20 to-blue-600/5',
-                'Kasur': 'from-emerald-500/20 to-emerald-600/5',
-                'Sheikhupura': 'from-purple-500/20 to-purple-600/5',
-                'Nankana Sahib': 'from-amber-500/20 to-amber-600/5'
-            };
-
-            container.innerHTML = districts.map(d => {
-                const s = processedData.districtStats[d];
-                if (!s || s.total === 0) return '';
-                return `
-                    <div class="glass rounded-xl p-4 card-hover district-card bg-gradient-to-br ${colors[d]}">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-sm font-bold text-white">${d}</h3>
-                            <span class="badge bg-slate-700 text-slate-300">${s.total} PSIDs</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 mb-3">
-                            <div class="text-center">
-                                <p class="text-lg font-bold text-emerald-400">${s.done}</p>
-                                <p class="text-[10px] text-slate-500">Done</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-lg font-bold text-amber-400">${s.pending}</p>
-                                <p class="text-[10px] text-slate-500">Pending</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-lg font-bold text-purple-400">${Math.round(s.parcels)}</p>
-                                <p class="text-[10px] text-slate-500">Parcels</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="progress-bar flex-1">
-                                <div class="progress-fill bg-blue-500" style="width: ${s.progress}%"></div>
-                            </div>
-                            <span class="text-xs font-bold text-blue-400 w-8 text-right">${s.progress}%</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderCharts() {
-            const d = processedData;
-            const districts = ['Lahore', 'Kasur', 'Sheikhupura', 'Nankana Sahib'];
-
-            // Destroy existing charts
-            Object.values(charts).forEach(c => c && c.destroy());
-
-            const commonOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
-                scales: {
-                    x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(148,163,184,0.06)' } },
-                    y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(148,163,184,0.06)' } }
-                }
-            };
-
-            // Chart 1: Status Doughnut
-            charts.status = new Chart(document.getElementById('chartStatus'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Done', 'Pending'],
-                    datasets: [{
-                        data: [d.done, d.pending],
-                        backgroundColor: ['#10b981', '#f59e0b'],
-                        borderWidth: 0,
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '65%',
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 15, font: { size: 11 } } }
-                    }
-                }
-            });
-
-            // Chart 2: DGPS vs Mobile
-            const dgpsData = districts.map(d => d.methodStats[d]?.dgps || 0);
-            const mobileData = districts.map(d => d.methodStats[d]?.mobile || 0);
-            charts.method = new Chart(document.getElementById('chartMethod'), {
-                type: 'bar',
-                data: {
-                    labels: districts,
-                    datasets: [
-                        { label: 'DGPS', data: dgpsData, backgroundColor: '#3b82f6', borderRadius: 4 },
-                        { label: 'Mobile', data: mobileData, backgroundColor: '#f59e0b', borderRadius: 4 }
-                    ]
-                },
-                options: {
-                    ...commonOptions,
-                    scales: {
-                        x: { stacked: true, ticks: { color: '#64748b', font: { size: 10 } }, grid: { display: false } },
-                        y: { stacked: true, ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(148,163,184,0.06)' } }
-                    }
-                }
-            });
-
-            // Chart 3: Top 5 Surveyors
-            const top5 = d.surveyorList.slice(0, 5);
-            charts.surveyors = new Chart(document.getElementById('chartSurveyors'), {
-                type: 'bar',
-                data: {
-                    labels: top5.map(s => s.name.length > 12 ? s.name.substring(0, 12) + '...' : s.name),
-                    datasets: [{
-                        label: 'Surveys Completed',
-                        data: top5.map(s => s.done),
-                        backgroundColor: '#10b981',
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    ...commonOptions,
-                    indexAxis: 'y',
-                    scales: {
-                        x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(148,163,184,0.06)' } },
-                        y: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { display: false } }
-                    }
-                }
-            });
-
-            // Chart 4: 14-day Trend
-            charts.trend = new Chart(document.getElementById('chartTrend'), {
-                type: 'line',
-                data: {
-                    labels: d.trendLabels,
-                    datasets: [{
-                        label: 'Completed',
-                        data: d.trendValues,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 3,
-                        pointBackgroundColor: '#3b82f6'
-                    }]
-                },
-                options: {
-                    ...commonOptions,
-                    scales: {
-                        x: { ticks: { color: '#64748b', font: { size: 9 }, maxRotation: 45 }, grid: { display: false } },
-                        y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(148,163,184,0.06)' }, beginAtZero: true }
-                    }
-                }
-            });
-        }
-
-        // ═══════════════════════════════════════════
-        // ISSUES TAB
-        // ═══════════════════════════════════════════
-        function updateIssuesBadge() {
-            const badge = document.getElementById('issuesBadge');
-            const count = processedData.issuesData.length;
-            if (count > 0) {
-                badge.textContent = count;
-                badge.classList.remove('hidden');
-            }
-            document.getElementById('issuesTotalCount').textContent = count;
-            document.getElementById('issuesCallingCount').textContent = processedData.issuesCalling;
-            document.getElementById('issuesSurveyCount').textContent = processedData.issuesSurvey;
-        }
-
-        function filterIssues(type) {
-            issuesFilter = type;
-            document.querySelectorAll('.issue-filter').forEach(btn => {
-                if (btn.dataset.filter === type) {
-                    btn.classList.add('bg-blue-600/20', 'text-blue-400', 'border-blue-500/30');
-                    btn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700');
-                } else {
-                    btn.classList.remove('bg-blue-600/20', 'text-blue-400', 'border-blue-500/30');
-                    btn.classList.add('bg-slate-800', 'text-slate-400', 'border-slate-700');
-                }
-            });
-            renderIssues();
-        }
-
-        function renderIssues() {
-            const search = document.getElementById('issuesSearch').value.toLowerCase();
-            let filtered = processedData.issuesData;
-
-            if (issuesFilter === 'calling') filtered = filtered.filter(r => r.hasCalling);
-            else if (issuesFilter === 'survey') filtered = filtered.filter(r => r.hasSurvey);
-
-            if (search) {
-                filtered = filtered.filter(r => 
-                    String(r.psid || '').toLowerCase().includes(search) ||
-                    String(r.ownerName || '').toLowerCase().includes(search) ||
-                    String(r.district || '').toLowerCase().includes(search) ||
-                    String(r.callingRemarks || '').toLowerCase().includes(search) ||
-                    String(r.surveyRemarks || '').toLowerCase().includes(search)
-                );
-            }
-
-            const tbody = document.getElementById('issuesTableBody');
-            const empty = document.getElementById('issuesEmpty');
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = '';
-                empty.classList.remove('hidden');
-                return;
-            }
-            empty.classList.add('hidden');
-
-            tbody.innerHTML = filtered.map(r => {
-                const status = String(r.surveyStatus || '').toLowerCase() === 'done' ? 
-                    '<span class="badge status-done">Done</span>' : 
-                    '<span class="badge status-pending">Pending</span>';
-
-                let type = '', remark = '', typeClass = '';
-                if (issuesFilter === 'all') {
-                    if (r.hasSurvey) { type = 'Survey'; remark = r.surveyRemarks; typeClass = 'issue-type-survey'; }
-                    else { type = 'Calling'; remark = r.callingRemarks; typeClass = 'issue-type-calling'; }
-                } else if (issuesFilter === 'calling') {
-                    type = 'Calling'; remark = r.callingRemarks; typeClass = 'issue-type-calling';
-                } else {
-                    type = 'Survey'; remark = r.surveyRemarks; typeClass = 'issue-type-survey';
-                }
-
-                return `
-                    <tr class="hover:bg-slate-800/30 transition ${typeClass}">
-                        <td class="px-4 py-2.5 font-mono text-slate-300">${r.psid || '-'}</td>
-                        <td class="px-4 py-2.5 text-slate-400">${r.district || '-'}</td>
-                        <td class="px-4 py-2.5 text-slate-400">${r.surveyorName || '-'}</td>
-                        <td class="px-4 py-2.5">${status}</td>
-                        <td class="px-4 py-2.5"><span class="badge ${type === 'Survey' ? 'status-issue' : 'status-pending'}">${type}</span></td>
-                        <td class="px-4 py-2.5 remark-text max-w-md">${remark || '-'}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function searchIssues() { renderIssues(); }
-
-        // ═══════════════════════════════════════════
-        // SURVEYORS TAB
-        // ═══════════════════════════════════════════
-        function renderSurveyors() {
-            const tbody = document.getElementById('surveyorsTableBody');
-            const list = processedData.surveyorList;
-
-            tbody.innerHTML = list.map((s, i) => `
-                <tr class="hover:bg-slate-800/30 transition">
-                    <td class="px-4 py-2.5 text-slate-500 font-mono">${i + 1}</td>
-                    <td class="px-4 py-2.5 font-medium text-white">${s.name}</td>
-                    <td class="px-4 py-2.5 text-center text-emerald-400 font-bold">${s.done}</td>
-                    <td class="px-4 py-2.5 text-center text-amber-400">${s.pending}</td>
-                    <td class="px-4 py-2.5 text-center text-slate-300">${s.total}</td>
-                    <td class="px-4 py-2.5 text-center text-purple-400">${s.avgParcels}</td>
-                    <td class="px-4 py-2.5 text-center text-cyan-400">${s.avgDays}</td>
-                </tr>
-            `).join('');
-
-            // Chart
-            if (charts.surveyorBar) charts.surveyorBar.destroy();
-            const top10 = list.slice(0, 10);
-            charts.surveyorBar = new Chart(document.getElementById('chartSurveyorBar'), {
-                type: 'bar',
-                data: {
-                    labels: top10.map(s => s.name.length > 10 ? s.name.substring(0, 10) + '...' : s.name),
-                    datasets: [
-                        { label: 'Done', data: top10.map(s => s.done), backgroundColor: '#10b981', borderRadius: 3 },
-                        { label: 'Pending', data: top10.map(s => s.pending), backgroundColor: '#f59e0b', borderRadius: 3 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
-                    scales: {
-                        x: { ticks: { color: '#64748b', font: { size: 9 } }, grid: { display: false } },
-                        y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(148,163,184,0.06)' }, beginAtZero: true }
-                    }
-                }
-            });
-        }
-
-        // ═══════════════════════════════════════════
-        // RAW DATA TAB
-        // ═══════════════════════════════════════════
-        function populateRawFilters() {
-            const districts = [...new Set(rawData.map(r => r.district).filter(Boolean))].sort();
-            const surveyors = [...new Set(rawData.map(r => r.surveyorName).filter(Boolean))].sort();
-
-            const dSelect = document.getElementById('rawFilterDistrict');
-            dSelect.innerHTML = '<option value="">All Districts</option>' + 
-                districts.map(d => `<option value="${d}">${d}</option>`).join('');
-
-            const sSelect = document.getElementById('rawFilterSurveyor');
-            sSelect.innerHTML = '<option value="">All Surveyors</option>' + 
-                surveyors.map(s => `<option value="${s}">${s}</option>`).join('');
-        }
-
-        function filterRawData() {
-            const search = document.getElementById('rawSearch').value.toLowerCase();
-            const district = document.getElementById('rawFilterDistrict').value;
-            const status = document.getElementById('rawFilterStatus').value;
-            const surveyor = document.getElementById('rawFilterSurveyor').value;
-
-            filteredRawData = rawData.filter(r => {
-                const matchSearch = !search || 
-                    String(r.psid || '').toLowerCase().includes(search) ||
-                    String(r.ownerName || '').toLowerCase().includes(search);
-                const matchDistrict = !district || String(r.district || '') === district;
-                const matchStatus = !status || String(r.surveyStatus || '').toLowerCase() === status.toLowerCase();
-                const matchSurveyor = !surveyor || String(r.surveyorName || '') === surveyor;
-                return matchSearch && matchDistrict && matchStatus && matchSurveyor;
-            });
-
-            rawPage = 1;
-            renderRawTable();
-        }
-
-        function renderRawTable() {
-            const start = (rawPage - 1) * rawPerPage;
-            const end = start + rawPerPage;
-            const pageData = filteredRawData.slice(start, end);
-            const totalPages = Math.ceil(filteredRawData.length / rawPerPage) || 1;
-
-            document.getElementById('rawShowing').textContent = filteredRawData.length;
-            document.getElementById('rawTotal').textContent = rawData.length;
-
-            const tbody = document.getElementById('rawTableBody');
-            tbody.innerHTML = pageData.map(r => {
-                const status = String(r.surveyStatus || '').toLowerCase() === 'done' ?
-                    '<span class="badge status-done">Done</span>' :
-                    '<span class="badge status-pending">Pending</span>';
-                const method = String(r.surveyedByDgpsOrMobile || '-');
-                return `
-                    <tr class="hover:bg-slate-800/30 transition">
-                        <td class="px-3 py-2 font-mono text-slate-300">${r.psid || '-'}</td>
-                        <td class="px-3 py-2 text-slate-400">${r.district || '-'}</td>
-                        <td class="px-3 py-2 text-slate-400">${r.tehsil || '-'}</td>
-                        <td class="px-3 py-2 text-slate-400">${r.mouza || '-'}</td>
-                        <td class="px-3 py-2 text-slate-400">${r.khasraNumber || '-'}</td>
-                        <td class="px-3 py-2 text-slate-300">${r.ownerName || '-'}</td>
-                        <td class="px-3 py-2 text-slate-400">${r.surveyorName || '-'}</td>
-                        <td class="px-3 py-2 text-center">${status}</td>
-                        <td class="px-3 py-2 text-center text-purple-400">${r.numberOfParcelsCreated || '0'}</td>
-                        <td class="px-3 py-2 text-center text-slate-400">${method}</td>
-                        <td class="px-3 py-2 text-slate-500 max-w-xs truncate" title="${r.surveyRemarks || ''}">${r.surveyRemarks || '-'}</td>
-                    </tr>
-                `;
-            }).join('');
-
-            // Pagination
-            let pages = [];
-            for (let i = 1; i <= totalPages; i++) {
-                if (i === 1 || i === totalPages || (i >= rawPage - 1 && i <= rawPage + 1)) {
-                    pages.push(i);
-                } else if (i === rawPage - 2 || i === rawPage + 2) {
-                    pages.push('...');
-                }
-            }
-            // Deduplicate
-            pages = pages.filter((v, i, a) => v !== '...' || a[i-1] !== '...');
-
-            document.getElementById('rawPagination').innerHTML = pages.map(p => {
-                if (p === '...') return `<span class="text-slate-600 text-xs px-1">...</span>`;
-                return `<button onclick="goToPage(${p})" class="page-btn ${p === rawPage ? 'active' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'} transition">${p}</button>`;
-            }).join('');
-        }
-
-        function changePage(dir) {
-            const totalPages = Math.ceil(filteredRawData.length / rawPerPage) || 1;
-            rawPage = Math.max(1, Math.min(totalPages, rawPage + dir));
-            renderRawTable();
-        }
-
-        function goToPage(p) {
-            rawPage = p;
-            renderRawTable();
-        }
-
-        // ═══════════════════════════════════════════
-        // TAB SWITCHING
-        // ═══════════════════════════════════════════
-        function switchTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById('tab-' + tab).classList.remove('hidden');
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                if (btn.dataset.tab === tab) {
-                    btn.classList.add('active');
-                    btn.classList.remove('text-slate-500');
-                } else {
-                    btn.classList.remove('active');
-                    btn.classList.add('text-slate-500');
-                }
-            });
-        }
-
-        // ═══════════════════════════════════════════
-        // START
-        // ═══════════════════════════════════════════
-        init();
-    </script>
+<div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950">
+<div class="loading-spinner mb-4"></div>
+<p class="text-slate-400 text-sm">Loading dashboard configuration...</p>
+</div>
+
+<div id="errorScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 hidden">
+<div class="text-5xl mb-4">⚠️</div>
+<h2 class="text-xl font-bold text-white mb-2" id="errorTitle">Configuration Error</h2>
+<p class="text-slate-400 text-sm max-w-md text-center mb-6" id="errorMessage">Something went wrong.</p>
+<div class="glass rounded-lg p-4 max-w-lg w-full mx-4">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">How to fix:</h3>
+<ol class="text-sm text-slate-300 space-y-2 list-decimal list-inside" id="errorSteps">
+<li>Make sure <code class="bg-slate-800 px-1 rounded text-blue-400">config.json</code> is in the same folder as this HTML file</li>
+<li>Open <code class="bg-slate-800 px-1 rounded text-blue-400">config.json</code> and paste your Apps Script URL</li>
+<li>Refresh this page</li>
+</ol>
+</div>
+<button onclick="location.reload()" class="mt-6 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition">Retry</button>
+</div>
+
+<div id="app" class="hidden">
+<header class="sticky top-0 z-40 glass border-b border-slate-800/50">
+<div class="max-w-[1600px] mx-auto px-4 py-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-blue-600/20 flex items-center justify-center">
+<i class="fas fa-map-marked-alt text-blue-400 text-sm"></i>
+</div>
+<div>
+<h1 class="text-sm font-bold text-white leading-tight">Punjab GIS</h1>
+<p class="text-[10px] text-slate-500 uppercase tracking-wider">Lahore Division Survey Operations</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+<span class="w-2 h-2 rounded-full bg-emerald-400 pulse"></span>
+<span class="text-[11px] font-medium text-emerald-400">Live</span>
+</div>
+<div class="text-right hidden sm:block">
+<p class="text-[10px] text-slate-500">Last Updated</p>
+<p class="text-xs font-medium text-slate-300" id="lastUpdated">--</p>
+</div>
+<button onclick="fetchData()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition" title="Refresh">
+<i class="fas fa-sync-alt text-xs text-slate-400"></i>
+</button>
+</div>
+</div>
+</header>
+
+<div id="debugPanel" class="max-w-[1600px] mx-auto px-4 pt-4 hidden">
+<div class="debug-panel rounded-xl p-4">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-sm font-bold text-red-400"><i class="fas fa-bug mr-2"></i>Data Diagnostics</h3>
+<button onclick="document.getElementById('debugPanel').classList.add('hidden')" class="text-xs text-slate-400 hover:text-white">Hide</button>
+</div>
+<div id="debugContent" class="text-xs text-slate-300 font-mono whitespace-pre-wrap"></div>
+</div>
+</div>
+
+<nav class="max-w-[1600px] mx-auto px-4 pt-4 pb-2">
+<div class="flex gap-1 p-1 rounded-xl bg-slate-900/50 border border-slate-800/50 w-fit">
+<button class="tab-btn active px-4 py-2 rounded-lg text-xs font-medium border border-transparent" data-tab="overview" onclick="switchTab('overview')">
+<i class="fas fa-chart-pie mr-1.5"></i>Overview
+</button>
+<button class="tab-btn px-4 py-2 rounded-lg text-xs font-medium border border-transparent text-slate-500" data-tab="issues" onclick="switchTab('issues')">
+<i class="fas fa-exclamation-triangle mr-1.5"></i>Issues <span id="issuesBadge" class="badge bg-red-500/20 text-red-400 ml-1 hidden">0</span>
+</button>
+<button class="tab-btn px-4 py-2 rounded-lg text-xs font-medium border border-transparent text-slate-500" data-tab="surveyors" onclick="switchTab('surveyors')">
+<i class="fas fa-users mr-1.5"></i>Surveyors
+</button>
+<button class="tab-btn px-4 py-2 rounded-lg text-xs font-medium border border-transparent text-slate-500" data-tab="raw" onclick="switchTab('raw')">
+<i class="fas fa-table mr-1.5"></i>Raw Data
+</button>
+</div>
+</nav>
+
+<div id="tab-overview" class="tab-content max-w-[1600px] mx-auto px-4 pb-8 fade-in">
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-4">
+<div class="glass rounded-xl p-3 card-hover">
+<p class="kpi-label mb-1.5">Total PSIDs</p>
+<p class="kpi-value text-white" id="kpiTotal">0</p>
+<p class="text-[10px] text-slate-500 mt-1">All received</p>
+</div>
+<div class="glass rounded-xl p-3 card-hover">
+<p class="kpi-label mb-1.5 text-emerald-400">Surveyed</p>
+<p class="kpi-value text-emerald-400" id="kpiDone">0</p>
+<p class="text-[10px] text-slate-500 mt-1">Completed</p>
+</div>
+<div class="glass rounded-xl p-3 card-hover">
+<p class="kpi-label mb-1.5 text-amber-400">Pending</p>
+<p class="kpi-value text-amber-400" id="kpiPending">0</p>
+<p class="text-[10px] text-slate-500 mt-1">In backlog</p>
+</div>
+<div class="glass rounded-xl p-3 card-hover">
+<p class="kpi-label mb-1.5 text-blue-400">Progress</p>
+<p class="kpi-value text-blue-400" id="kpiProgress">0%</p>
+<p class="text-[10px] text-slate-500 mt-1">Completion rate</p>
+</div>
+<div class="glass rounded-xl p-3 card-hover">
+<p class="kpi-label mb-1.5 text-purple-400">Parcels</p>
+<p class="kpi-value text-purple-400" id="kpiParcels">0</p>
+<p class="text-[10px] text-slate-500 mt-1">Total mapped</p>
+</div>
+<div class="glass rounded-xl p-3 card-hover">
+<p class="kpi-label mb-1.5 text-cyan-400">Avg Days</p>
+<p class="kpi-value text-cyan-400" id="kpiAvgDays">0</p>
+<p class="text-[10px] text-slate-500 mt-1">To complete</p>
+</div>
+<div class="glass rounded-xl p-3 card-hover">
+<p class="kpi-label mb-1.5 text-red-400">Issue Rate</p>
+<p class="kpi-value text-red-400" id="kpiIssueRate">0%</p>
+<p class="text-[10px] text-slate-500 mt-1">With remarks</p>
+</div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4" id="districtCards"></div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+<div class="glass rounded-xl p-4">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Survey Status</h3>
+<div class="chart-container"><canvas id="chartStatus"></canvas></div>
+</div>
+<div class="glass rounded-xl p-4">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">DGPS vs Mobile by District</h3>
+<div class="chart-container"><canvas id="chartMethod"></canvas></div>
+</div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+<div class="glass rounded-xl p-4">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Top 5 Surveyors</h3>
+<div class="chart-container"><canvas id="chartSurveyors"></canvas></div>
+</div>
+<div class="glass rounded-xl p-4">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Last 14 Days — Surveys Completed</h3>
+<div class="chart-container"><canvas id="chartTrend"></canvas></div>
+</div>
+</div>
+</div>
+
+<div id="tab-issues" class="tab-content max-w-[1600px] mx-auto px-4 pb-8 hidden fade-in">
+<div class="glass rounded-xl p-4 mb-4">
+<div class="flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center gap-2">
+<button class="issue-filter active px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600/20 text-blue-400 border border-blue-500/30" data-filter="all" onclick="filterIssues('all')">All Remarks</button>
+<button class="issue-filter px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700" data-filter="calling" onclick="filterIssues('calling')">Calling Remarks</button>
+<button class="issue-filter px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700" data-filter="survey" onclick="filterIssues('survey')">Survey Remarks</button>
+</div>
+<div class="flex items-center gap-4 text-xs">
+<span class="text-slate-500">Total with remarks: <strong class="text-white" id="issuesTotalCount">0</strong></span>
+<span class="text-amber-500">Calling: <strong id="issuesCallingCount">0</strong></span>
+<span class="text-red-400">Survey: <strong id="issuesSurveyCount">0</strong></span>
+</div>
+</div>
+</div>
+<div class="glass rounded-xl p-4 mb-4">
+<input type="text" id="issuesSearch" placeholder="Search by PSID, Owner, District, or Remark text..." class="search-input w-full px-4 py-2.5 rounded-lg text-sm text-white placeholder-slate-500" oninput="searchIssues()">
+</div>
+<div class="glass rounded-xl overflow-hidden">
+<div class="table-container">
+<table class="w-full text-xs">
+<thead class="bg-slate-900/80 sticky top-0 z-10">
+<tr>
+<th class="text-left px-4 py-2.5 font-semibold text-slate-400">PSID</th>
+<th class="text-left px-4 py-2.5 font-semibold text-slate-400">District</th>
+<th class="text-left px-4 py-2.5 font-semibold text-slate-400">Surveyor</th>
+<th class="text-left px-4 py-2.5 font-semibold text-slate-400">Status</th>
+<th class="text-left px-4 py-2.5 font-semibold text-slate-400">Type</th>
+<th class="text-left px-4 py-2.5 font-semibold text-slate-400">Remarks</th>
+</tr>
+</thead>
+<tbody id="issuesTableBody" class="divide-y divide-slate-800/50"></tbody>
+</table>
+</div>
+<div id="issuesEmpty" class="hidden py-12 text-center text-slate-500 text-sm">
+<i class="fas fa-check-circle text-3xl text-emerald-500/30 mb-2"></i>
+<p>No remarks found for the selected filter.</p>
+</div>
+</div>
+</div>
+
+<div id="tab-surveyors" class="tab-content max-w-[1600px] mx-auto px-4 pb-8 hidden fade-in">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+<div class="lg:col-span-2 glass rounded-xl overflow-hidden">
+<div class="px-4 py-3 border-b border-slate-800/50 flex items-center justify-between">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Surveyor Leaderboard</h3>
+<span class="text-[10px] text-slate-500">Sorted by completed surveys</span>
+</div>
+<div class="table-container" style="max-height:70vh;">
+<table class="w-full text-xs">
+<thead class="bg-slate-900/80 sticky top-0 z-10">
+<tr>
+<th class="text-left px-4 py-2.5 font-semibold text-slate-400 w-10">#</th>
+<th class="text-left px-4 py-2.5 font-semibold text-slate-400">Surveyor</th>
+<th class="text-center px-4 py-2.5 font-semibold text-slate-400">Done</th>
+<th class="text-center px-4 py-2.5 font-semibold text-slate-400">Pending</th>
+<th class="text-center px-4 py-2.5 font-semibold text-slate-400">Total</th>
+<th class="text-center px-4 py-2.5 font-semibold text-slate-400">Avg Parcels</th>
+<th class="text-center px-4 py-2.5 font-semibold text-slate-400">Avg Days</th>
+</tr>
+</thead>
+<tbody id="surveyorsTableBody" class="divide-y divide-slate-800/50"></tbody>
+</table>
+</div>
+</div>
+<div class="glass rounded-xl p-4">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Surveyor Productivity</h3>
+<div class="chart-container" style="height:300px;"><canvas id="chartSurveyorBar"></canvas></div>
+</div>
+</div>
+</div>
+
+<div id="tab-raw" class="tab-content max-w-[1600px] mx-auto px-4 pb-8 hidden fade-in">
+<div class="glass rounded-xl p-4 mb-4">
+<div class="flex flex-wrap items-center gap-3">
+<input type="text" id="rawSearch" placeholder="Search PSID or Owner Name..." class="search-input px-4 py-2 rounded-lg text-sm text-white placeholder-slate-500 flex-1 min-w-[200px]" oninput="filterRawData()">
+<select id="rawFilterDistrict" class="search-input px-3 py-2 rounded-lg text-sm text-white min-w-[140px]" onchange="filterRawData()"><option value="">All Districts</option></select>
+<select id="rawFilterStatus" class="search-input px-3 py-2 rounded-lg text-sm text-white min-w-[120px]" onchange="filterRawData()"><option value="">All Status</option><option value="Done">Done</option><option value="Pending">Pending</option></select>
+<select id="rawFilterSurveyor" class="search-input px-3 py-2 rounded-lg text-sm text-white min-w-[140px]" onchange="filterRawData()"><option value="">All Surveyors</option></select>
+<span class="text-xs text-slate-500 whitespace-nowrap">Showing <strong id="rawShowing" class="text-white">0</strong> of <strong id="rawTotal" class="text-white">0</strong></span>
+</div>
+</div>
+<div class="glass rounded-xl overflow-hidden">
+<div class="table-container">
+<table class="w-full text-[11px]">
+<thead class="bg-slate-900/80 sticky top-0 z-10">
+<tr>
+<th class="text-left px-3 py-2 font-semibold text-slate-400">PSID</th>
+<th class="text-left px-3 py-2 font-semibold text-slate-400">District</th>
+<th class="text-left px-3 py-2 font-semibold text-slate-400">Tehsil</th>
+<th class="text-left px-3 py-2 font-semibold text-slate-400">Mouza</th>
+<th class="text-left px-3 py-2 font-semibold text-slate-400">Khasra</th>
+<th class="text-left px-3 py-2 font-semibold text-slate-400">Owner</th>
+<th class="text-left px-3 py-2 font-semibold text-slate-400">Surveyor</th>
+<th class="text-center px-3 py-2 font-semibold text-slate-400">Status</th>
+<th class="text-center px-3 py-2 font-semibold text-slate-400">Parcels</th>
+<th class="text-center px-3 py-2 font-semibold text-slate-400">Method</th>
+<th class="text-left px-3 py-2 font-semibold text-slate-400">Survey Remarks</th>
+</tr>
+</thead>
+<tbody id="rawTableBody" class="divide-y divide-slate-800/50"></tbody>
+</table>
+</div>
+<div class="flex items-center justify-between px-4 py-3 border-t border-slate-800/50">
+<button onclick="changePage(-1)" class="page-btn bg-slate-800 hover:bg-slate-700 text-slate-300 transition"><i class="fas fa-chevron-left"></i></button>
+<div class="flex gap-1" id="rawPagination"></div>
+<button onclick="changePage(1)" class="page-btn bg-slate-800 hover:bg-slate-700 text-slate-300 transition"><i class="fas fa-chevron-right"></i></button>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+let appConfig=null,rawData=[],processedData=null,charts={},currentTab='overview',issuesFilter='all',rawPage=1,rawPerPage=50,filteredRawData=[];
+
+async function init(){
+try{
+let configUrl='config.json?v='+Date.now();
+let configRes=await fetch(configUrl);
+if(!configRes.ok) throw new Error('Config file not found. Make sure config.json is in the same folder as index.html');
+appConfig=await configRes.json();
+if(!appConfig.webAppUrl||appConfig.webAppUrl.includes('YOUR_')) throw new Error('Apps Script URL not configured in config.json');
+await fetchData();
+document.getElementById('loadingScreen').classList.add('hidden');
+document.getElementById('app').classList.remove('hidden');
+}catch(err){
+console.error('Init error:',err);
+showError(err.message);
+}
+}
+
+function showError(msg){
+document.getElementById('loadingScreen').classList.add('hidden');
+document.getElementById('errorScreen').classList.remove('hidden');
+document.getElementById('errorMessage').textContent=msg;
+}
+
+async function fetchData(){
+let spinner=document.querySelector('.fa-sync-alt');
+if(spinner) spinner.classList.add('fa-spin');
+try{
+let res=await fetch(appConfig.webAppUrl+'?t='+Date.now(),{method:'GET',headers:{'Accept':'application/json'}});
+if(!res.ok) throw new Error('Apps Script returned status '+res.status);
+let json=await res.json();
+if(!json.success&&json.errors&&json.errors.length>0) console.warn('Apps Script warnings:',json.errors);
+rawData=Array.isArray(json.data)?json.data:[];
+if(rawData.length===0) throw new Error('No data received from Apps Script. Check Sheet IDs and make sure sheets are not empty.');
+document.getElementById('lastUpdated').textContent=new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+processData();
+renderAll();
+}catch(err){
+console.error('Fetch error:',err);
+alert('Error loading data: '+err.message);
+}finally{
+if(spinner) spinner.classList.remove('fa-spin');
+}
+}
+
+function safeStr(v){return String(v||'').trim();}
+function safeLower(v){return safeStr(v).toLowerCase();}
+function safeNum(v){let n=parseFloat(v);return isNaN(n)?0:n;}
+function isDone(r){return safeLower(r.surveyStatus)==='done';}
+function isPending(r){return safeLower(r.surveyStatus)==='pending';}
+
+function processData(){
+try{
+let data=rawData;
+let districts=['Lahore','Kasur','Sheikhupura','Nankana Sahib'];
+
+let actualDistricts={};
+data.forEach(r=>{let d=safeStr(r.district);actualDistricts[d]=(actualDistricts[d]||0)+1;});
+console.log('District values in data:',actualDistricts);
+
+let total=data.length;
+let done=data.filter(isDone).length;
+let pending=data.filter(isPending).length;
+let progress=total>0?Math.round((done/total)*100):0;
+
+let totalParcels=data.reduce((sum,r)=>sum+safeNum(r.numberOfParcelsCreated),0);
+
+let totalDays=0,completedWithDates=0;
+data.forEach(r=>{
+if(isDone(r)&&r.dateOfAssign&&r.surveyCompletedDate){
+let start=new Date(r.dateOfAssign),end=new Date(r.surveyCompletedDate);
+if(!isNaN(start.getTime())&&!isNaN(end.getTime())){
+let days=Math.ceil((end-start)/(1000*60*60*24));
+if(days>=0&&days<1000){totalDays+=days;completedWithDates++;}
+}
+}
+});
+let avgDays=completedWithDates>0?(totalDays/completedWithDates).toFixed(1):'0';
+
+let withIssues=data.filter(r=>safeStr(r.surveyRemarks)!=='').length;
+let issueRate=total>0?Math.round((withIssues/total)*100):0;
+
+let districtStats={};
+districts.forEach(d=>{
+let dKey=d.toLowerCase();
+let dData=data.filter(r=>{
+let rd=safeLower(r.district);
+return rd===dKey||rd.includes(dKey)||dKey.includes(rd);
+});
+districtStats[d]={
+total:dData.length,
+done:dData.filter(isDone).length,
+pending:dData.filter(isPending).length,
+progress:dData.length>0?Math.round((dData.filter(isDone).length/dData.length)*100):0,
+parcels:dData.reduce((sum,r)=>sum+safeNum(r.numberOfParcelsCreated),0)
+};
+});
+
+let methodStats={};
+districts.forEach(d=>{
+let dKey=d.toLowerCase();
+let dData=data.filter(r=>{let rd=safeLower(r.district);return rd===dKey||rd.includes(dKey)||dKey.includes(rd);});
+methodStats[d]={
+dgps:dData.filter(r=>safeLower(r.surveyedByDgpsOrMobile).includes('dgps')).length,
+mobile:dData.filter(r=>safeLower(r.surveyedByDgpsOrMobile).includes('mobile')).length
+};
+});
+
+let surveyorMap={};
+data.forEach(r=>{
+let name=safeStr(r.surveyorName);
+if(!name||name.toLowerCase()==='unknown') return;
+if(!surveyorMap[name]) surveyorMap[name]={done:0,pending:0,total:0,parcels:0,days:0,count:0};
+surveyorMap[name].total++;
+if(isDone(r)){
+surveyorMap[name].done++;
+surveyorMap[name].parcels+=safeNum(r.numberOfParcelsCreated);
+if(r.dateOfAssign&&r.surveyCompletedDate){
+let start=new Date(r.dateOfAssign),end=new Date(r.surveyCompletedDate);
+if(!isNaN(start.getTime())&&!isNaN(end.getTime())){
+let days=Math.ceil((end-start)/(1000*60*60*24));
+if(days>=0&&days<1000){surveyorMap[name].days+=days;surveyorMap[name].count++;}
+}
+}
+}else{
+surveyorMap[name].pending++;
+}
+});
+
+let surveyorList=Object.entries(surveyorMap).map(([name,stats])=>({
+name,
+...stats,
+avgParcels:stats.done>0?(stats.parcels/stats.done).toFixed(1):'0',
+avgDays:stats.count>0?(stats.days/stats.count).toFixed(1):'0'
+})).sort((a,b)=>b.done-a.done);
+
+let today=new Date(),trendMap={};
+for(let i=13;i>=0;i--){
+let d=new Date(today);d.setDate(d.getDate()-i);
+trendMap[d.toISOString().split('T')[0]]=0;
+}
+data.forEach(r=>{
+if(isDone(r)&&r.surveyCompletedDate){
+let dk=String(r.surveyCompletedDate).split('T')[0];
+if(trendMap[dk]!==undefined) trendMap[dk]++;
+}
+});
+let trendLabels=Object.keys(trendMap).map(d=>new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
+let trendValues=Object.values(trendMap);
+
+let issuesData=data.filter(r=>safeStr(r.callingRemarks)!==''||safeStr(r.surveyRemarks)!=='').map(r=>({
+...r,
+hasCalling:safeStr(r.callingRemarks)!=='',
+hasSurvey:safeStr(r.surveyRemarks)!==''
+}));
+
+processedData={
+total,done,pending,progress,totalParcels,avgDays,issueRate,
+districtStats,methodStats,surveyorList,trendLabels,trendValues,
+issuesData,
+issuesCalling:issuesData.filter(r=>r.hasCalling).length,
+issuesSurvey:issuesData.filter(r=>r.hasSurvey).length
+};
+
+let districtTotalSum=Object.values(districtStats).reduce((s,d)=>s+d.total,0);
+if(districtTotalSum<total*0.5){
+let panel=document.getElementById('debugPanel');
+let content=document.getElementById('debugContent');
+panel.classList.remove('hidden');
+content.textContent='WARNING: District names in your data do not match expected names.\n\n'+
+'Expected: Lahore, Kasur, Sheikhupura, Nankana Sahib\n'+
+'Found in data: '+JSON.stringify(actualDistricts,null,2)+'\n\n'+
+'Total records: '+total+'\n'+
+'Matched to districts: '+districtTotalSum+'\n\n'+
+'FIX: Make sure your Google Sheet "District" column contains exact names.\n'+
+'Or tell me what district names you actually use and I will update the code.';
+}
+}catch(err){
+console.error('processData error:',err);
+processedData={total:0,done:0,pending:0,progress:0,totalParcels:0,avgDays:'0',issueRate:0,districtStats:{},methodStats:{},surveyorList:[],trendLabels:[],trendValues:[],issuesData:[],issuesCalling:0,issuesSurvey:0};
+}
+}
+
+function renderAll(){
+if(!processedData)return;
+renderKPIs();
+renderDistrictCards();
+renderCharts();
+renderIssues();
+renderSurveyors();
+populateRawFilters();
+filterRawData();
+updateIssuesBadge();
+}
+
+function renderKPIs(){
+if(!processedData)return;
+let d=processedData;
+document.getElementById('kpiTotal').textContent=d.total.toLocaleString();
+document.getElementById('kpiDone').textContent=d.done.toLocaleString();
+document.getElementById('kpiPending').textContent=d.pending.toLocaleString();
+document.getElementById('kpiProgress').textContent=d.progress+'%';
+document.getElementById('kpiParcels').textContent=Math.round(d.totalParcels).toLocaleString();
+document.getElementById('kpiAvgDays').textContent=d.avgDays;
+document.getElementById('kpiIssueRate').textContent=d.issueRate+'%';
+}
+
+function renderDistrictCards(){
+let container=document.getElementById('districtCards');
+if(!container||!processedData||!processedData.districtStats){
+if(container) container.innerHTML='<div class="col-span-4 text-center text-slate-500 py-8">No district data available</div>';
+return;
+}
+let districts=['Lahore','Kasur','Sheikhupura','Nankana Sahib'];
+let colors={'Lahore':'from-blue-500/20 to-blue-600/5','Kasur':'from-emerald-500/20 to-emerald-600/5','Sheikhupura':'from-purple-500/20 to-purple-600/5','Nankana Sahib':'from-amber-500/20 to-amber-600/5'};
+container.innerHTML=districts.map(d=>{
+let s=processedData.districtStats[d];
+if(!s)return'';
+return '<div class="glass rounded-xl p-4 card-hover district-card bg-gradient-to-br '+colors[d]+'">'+
+'<div class="flex items-center justify-between mb-3"><h3 class="text-sm font-bold text-white">'+d+'</h3><span class="badge bg-slate-700 text-slate-300">'+s.total+' PSIDs</span></div>'+
+'<div class="grid grid-cols-3 gap-2 mb-3">'+
+'<div class="text-center"><p class="text-lg font-bold text-emerald-400">'+s.done+'</p><p class="text-[10px] text-slate-500">Done</p></div>'+
+'<div class="text-center"><p class="text-lg font-bold text-amber-400">'+s.pending+'</p><p class="text-[10px] text-slate-500">Pending</p></div>'+
+'<div class="text-center"><p class="text-lg font-bold text-purple-400">'+Math.round(s.parcels)+'</p><p class="text-[10px] text-slate-500">Parcels</p></div>'+
+'</div>'+
+'<div class="flex items-center gap-2"><div class="progress-bar flex-1"><div class="progress-fill bg-blue-500" style="width:'+s.progress+'%"></div></div><span class="text-xs font-bold text-blue-400 w-8 text-right">'+s.progress+'%</span></div>'+
+'</div>';
+}).join('');
+}
+
+function renderCharts(){
+if(!processedData)return;
+let d=processedData,districts=['Lahore','Kasur','Sheikhupura','Nankana Sahib'];
+Object.values(charts).forEach(c=>c&&c.destroy());
+
+let commonOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}};
+
+charts.status=new Chart(document.getElementById('chartStatus'),{
+type:'doughnut',
+data:{labels:['Done','Pending'],datasets:[{data:[d.done,d.pending],backgroundColor:['#10b981','#f59e0b'],borderWidth:0,hoverOffset:4}]},
+options:{...commonOpts,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#94a3b8',padding:15,font:{size:11}}}}}
+});
+
+let dgpsData=districts.map(d=>d.methodStats[d]?.dgps||0);
+let mobileData=districts.map(d=>d.methodStats[d]?.mobile||0);
+charts.method=new Chart(document.getElementById('chartMethod'),{
+type:'bar',
+data:{labels:districts,datasets:[{label:'DGPS',data:dgpsData,backgroundColor:'#3b82f6',borderRadius:4},{label:'Mobile',data:mobileData,backgroundColor:'#f59e0b',borderRadius:4}]},
+options:{...commonOpts,scales:{x:{stacked:true,ticks:{color:'#64748b',font:{size:10}},grid:{display:false}},y:{stacked:true,ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'}}}}
+});
+
+let top5=d.surveyorList.slice(0,5);
+charts.surveyors=new Chart(document.getElementById('chartSurveyors'),{
+type:'bar',
+data:{labels:top5.map(s=>s.name.length>12?s.name.substring(0,12)+'...':s.name),datasets:[{label:'Surveys Completed',data:top5.map(s=>s.done),backgroundColor:'#10b981',borderRadius:4}]},
+options:{...commonOpts,indexAxis:'y',scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'}},y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{display:false}}}}
+});
+
+charts.trend=new Chart(document.getElementById('chartTrend'),{
+type:'line',
+data:{labels:d.trendLabels,datasets:[{label:'Completed',data:d.trendValues,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.1)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:'#3b82f6'}]},
+options:{...commonOpts,scales:{x:{ticks:{color:'#64748b',font:{size:9},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'},beginAtZero:true}}}
+});
+}
+
+function updateIssuesBadge(){
+let badge=document.getElementById('issuesBadge');
+if(!processedData)return;
+let count=processedData.issuesData.length;
+if(count>0){badge.textContent=count;badge.classList.remove('hidden');}
+document.getElementById('issuesTotalCount').textContent=count;
+document.getElementById('issuesCallingCount').textContent=processedData.issuesCalling;
+document.getElementById('issuesSurveyCount').textContent=processedData.issuesSurvey;
+}
+
+function filterIssues(type){
+issuesFilter=type;
+document.querySelectorAll('.issue-filter').forEach(btn=>{
+if(btn.dataset.filter===type){
+btn.classList.add('bg-blue-600/20','text-blue-400','border-blue-500/30');
+btn.classList.remove('bg-slate-800','text-slate-400','border-slate-700');
+}else{
+btn.classList.remove('bg-blue-600/20','text-blue-400','border-blue-500/30');
+btn.classList.add('bg-slate-800','text-slate-400','border-slate-700');
+}
+});
+renderIssues();
+}
+
+function renderIssues(){
+if(!processedData)return;
+let search=(document.getElementById('issuesSearch').value||'').toLowerCase();
+let filtered=processedData.issuesData;
+if(issuesFilter==='calling') filtered=filtered.filter(r=>r.hasCalling);
+else if(issuesFilter==='survey') filtered=filtered.filter(r=>r.hasSurvey);
+if(search) filtered=filtered.filter(r=>safeLower(r.psid).includes(search)||safeLower(r.ownerName).includes(search)||safeLower(r.district).includes(search)||safeLower(r.callingRemarks).includes(search)||safeLower(r.surveyRemarks).includes(search));
+
+let tbody=document.getElementById('issuesTableBody'),empty=document.getElementById('issuesEmpty');
+if(filtered.length===0){tbody.innerHTML='';empty.classList.remove('hidden');return;}
+empty.classList.add('hidden');
+tbody.innerHTML=filtered.map(r=>{
+let status=isDone(r)?'<span class="badge status-done">Done</span>':'<span class="badge status-pending">Pending</span>';
+let type='',remark='',typeClass='';
+if(issuesFilter==='all'){if(r.hasSurvey){type='Survey';remark=r.surveyRemarks;typeClass='issue-type-survey';}else{type='Calling';remark=r.callingRemarks;typeClass='issue-type-calling';}}
+else if(issuesFilter==='calling'){type='Calling';remark=r.callingRemarks;typeClass='issue-type-calling';}
+else{type='Survey';remark=r.surveyRemarks;typeClass='issue-type-survey';}
+return '<tr class="hover:bg-slate-800/30 transition '+typeClass+'"><td class="px-4 py-2.5 font-mono text-slate-300">'+(r.psid||'-')+'</td><td class="px-4 py-2.5 text-slate-400">'+(r.district||'-')+'</td><td class="px-4 py-2.5 text-slate-400">'+(r.surveyorName||'-')+'</td><td class="px-4 py-2.5">'+status+'</td><td class="px-4 py-2.5"><span class="badge '+(type==='Survey'?'status-issue':'status-pending')+'">'+type+'</span></td><td class="px-4 py-2.5 remark-text max-w-md">'+(remark||'-')+'</td></tr>';
+}).join('');
+}
+
+function searchIssues(){renderIssues();}
+
+function renderSurveyors(){
+if(!processedData)return;
+let tbody=document.getElementById('surveyorsTableBody'),list=processedData.surveyorList;
+tbody.innerHTML=list.map((s,i)=>'<tr class="hover:bg-slate-800/30 transition"><td class="px-4 py-2.5 text-slate-500 font-mono">'+(i+1)+'</td><td class="px-4 py-2.5 font-medium text-white">'+s.name+'</td><td class="px-4 py-2.5 text-center text-emerald-400 font-bold">'+s.done+'</td><td class="px-4 py-2.5 text-center text-amber-400">'+s.pending+'</td><td class="px-4 py-2.5 text-center text-slate-300">'+s.total+'</td><td class="px-4 py-2.5 text-center text-purple-400">'+s.avgParcels+'</td><td class="px-4 py-2.5 text-center text-cyan-400">'+s.avgDays+'</td></tr>').join('');
+
+if(charts.surveyorBar)charts.surveyorBar.destroy();
+let top10=list.slice(0,10);
+charts.surveyorBar=new Chart(document.getElementById('chartSurveyorBar'),{
+type:'bar',
+data:{labels:top10.map(s=>s.name.length>10?s.name.substring(0,10)+'...':s.name),datasets:[{label:'Done',data:top10.map(s=>s.done),backgroundColor:'#10b981',borderRadius:3},{label:'Pending',data:top10.map(s=>s.pending),backgroundColor:'#f59e0b',borderRadius:3}]},
+options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},scales:{x:{ticks:{color:'#64748b',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'},beginAtZero:true}}}
+});
+}
+
+function populateRawFilters(){
+let districts=[...new Set(rawData.map(r=>r.district).filter(Boolean))].sort();
+let surveyors=[...new Set(rawData.map(r=>r.surveyorName).filter(Boolean))].sort();
+let dSelect=document.getElementById('rawFilterDistrict');
+dSelect.innerHTML='<option value="">All Districts</option>'+districts.map(d=>'<option value="'+d+'">'+d+'</option>').join('');
+let sSelect=document.getElementById('rawFilterSurveyor');
+sSelect.innerHTML='<option value="">All Surveyors</option>'+surveyors.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
+}
+
+function filterRawData(){
+let search=(document.getElementById('rawSearch').value||'').toLowerCase();
+let district=document.getElementById('rawFilterDistrict').value;
+let status=document.getElementById('rawFilterStatus').value;
+let surveyor=document.getElementById('rawFilterSurveyor').value;
+filteredRawData=rawData.filter(r=>{
+let ms=!search||safeLower(r.psid).includes(search)||safeLower(r.ownerName).includes(search);
+let md=!district||safeStr(r.district)===district;
+let ms2=!status||safeLower(r.surveyStatus)===status.toLowerCase();
+let ms3=!surveyor||safeStr(r.surveyorName)===surveyor;
+return ms&&md&&ms2&&ms3;
+});
+rawPage=1;
+renderRawTable();
+}
+
+function renderRawTable(){
+let start=(rawPage-1)*rawPerPage,end=start+rawPerPage;
+let pageData=filteredRawData.slice(start,end);
+let totalPages=Math.ceil(filteredRawData.length/rawPerPage)||1;
+document.getElementById('rawShowing').textContent=filteredRawData.length;
+document.getElementById('rawTotal').textContent=rawData.length;
+let tbody=document.getElementById('rawTableBody');
+tbody.innerHTML=pageData.map(r=>{
+let status=isDone(r)?'<span class="badge status-done">Done</span>':'<span class="badge status-pending">Pending</span>';
+let method=safeStr(r.surveyedByDgpsOrMobile);
+return '<tr class="hover:bg-slate-800/30 transition"><td class="px-3 py-2 font-mono text-slate-300">'+(r.psid||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.district||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.tehsil||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.mouza||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.khasraNumber||'-')+'</td><td class="px-3 py-2 text-slate-300">'+(r.ownerName||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.surveyorName||'-')+'</td><td class="px-3 py-2 text-center">'+status+'</td><td class="px-3 py-2 text-center text-purple-400">'+(r.numberOfParcelsCreated||'0')+'</td><td class="px-3 py-2 text-center text-slate-400">'+method+'</td><td class="px-3 py-2 text-slate-500 max-w-xs truncate" title="'+(r.surveyRemarks||'')+'">'+(r.surveyRemarks||'-')+'</td></tr>';
+}).join('');
+
+let pages=[];
+for(let i=1;i<=totalPages;i++){
+if(i===1||i===totalPages||(i>=rawPage-1&&i<=rawPage+1))pages.push(i);
+else if(i===rawPage-2||i===rawPage+2)pages.push('...');
+}
+pages=pages.filter((v,i,a)=>v!=='...'||a[i-1]!=='...');
+document.getElementById('rawPagination').innerHTML=pages.map(p=>{
+if(p==='...')return'<span class="text-slate-600 text-xs px-1">...</span>';
+return'<button onclick="goToPage('+p+')" class="page-btn '+(p===rawPage?'active':'bg-slate-800 text-slate-400 hover:bg-slate-700')+' transition">'+p+'</button>';
+}).join('');
+}
+
+function changePage(dir){
+let totalPages=Math.ceil(filteredRawData.length/rawPerPage)||1;
+rawPage=Math.max(1,Math.min(totalPages,rawPage+dir));
+renderRawTable();
+}
+
+function goToPage(p){
+rawPage=p;
+renderRawTable();
+}
+
+function switchTab(tab){
+currentTab=tab;
+document.querySelectorAll('.tab-content').forEach(el=>el.classList.add('hidden'));
+document.getElementById('tab-'+tab).classList.remove('hidden');
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+if(btn.dataset.tab===tab){
+btn.classList.add('active');
+btn.classList.remove('text-slate-500');
+}else{
+btn.classList.remove('active');
+btn.classList.add('text-slate-500');
+}
+});
+}
+
+init();
+</script>
 </body>
 </html>
