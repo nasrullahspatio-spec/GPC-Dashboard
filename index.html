@@ -297,15 +297,21 @@
 </div>
 
 <script>
-let appConfig=null,rawData=[],processedData=null,charts={},currentTab='overview',issuesFilter='all',rawPage=1,rawPerPage=50,filteredRawData=[];
+var appConfig=null,rawData=[],processedData=null,charts={},currentTab='overview',issuesFilter='all',rawPage=1,rawPerPage=50,filteredRawData=[];
+
+function safeStr(v){return String(v||'').trim();}
+function safeLower(v){return safeStr(v).toLowerCase();}
+function safeNum(v){var n=parseFloat(v);return isNaN(n)?0:n;}
+function isDone(r){return safeLower(r.surveyStatus)==='done';}
+function isPending(r){return safeLower(r.surveyStatus)==='pending';}
 
 async function init(){
 try{
-let configUrl='config.json?v='+Date.now();
-let configRes=await fetch(configUrl);
+var configUrl='config.json?v='+Date.now();
+var configRes=await fetch(configUrl);
 if(!configRes.ok) throw new Error('Config file not found. Make sure config.json is in the same folder as index.html');
 appConfig=await configRes.json();
-if(!appConfig.webAppUrl||appConfig.webAppUrl.includes('YOUR_')) throw new Error('Apps Script URL not configured in config.json');
+if(!appConfig.webAppUrl||appConfig.webAppUrl.indexOf('YOUR_')>=0) throw new Error('Apps Script URL not configured in config.json');
 await fetchData();
 document.getElementById('loadingScreen').classList.add('hidden');
 document.getElementById('app').classList.remove('hidden');
@@ -322,12 +328,12 @@ document.getElementById('errorMessage').textContent=msg;
 }
 
 async function fetchData(){
-let spinner=document.querySelector('.fa-sync-alt');
+var spinner=document.querySelector('.fa-sync-alt');
 if(spinner) spinner.classList.add('fa-spin');
 try{
-let res=await fetch(appConfig.webAppUrl+'?t='+Date.now(),{method:'GET',headers:{'Accept':'application/json'}});
+var res=await fetch(appConfig.webAppUrl+'?t='+Date.now(),{method:'GET',headers:{'Accept':'application/json'}});
 if(!res.ok) throw new Error('Apps Script returned status '+res.status);
-let json=await res.json();
+var json=await res.json();
 if(!json.success&&json.errors&&json.errors.length>0) console.warn('Apps Script warnings:',json.errors);
 rawData=Array.isArray(json.data)?json.data:[];
 if(rawData.length===0) throw new Error('No data received from Apps Script. Check Sheet IDs and make sure sheets are not empty.');
@@ -342,129 +348,189 @@ if(spinner) spinner.classList.remove('fa-spin');
 }
 }
 
-function safeStr(v){return String(v||'').trim();}
-function safeLower(v){return safeStr(v).toLowerCase();}
-function safeNum(v){let n=parseFloat(v);return isNaN(n)?0:n;}
-function isDone(r){return safeLower(r.surveyStatus)==='done';}
-function isPending(r){return safeLower(r.surveyStatus)==='pending';}
-
 function processData(){
 try{
-let data=rawData;
-let districts=['Lahore','Kasur','Sheikhupura','Nankana Sahib'];
+var data=rawData;
+var districts=['Lahore','Kasur','Sheikhupura','Nankana Sahib'];
 
-let actualDistricts={};
-data.forEach(r=>{let d=safeStr(r.district);actualDistricts[d]=(actualDistricts[d]||0)+1;});
+var actualDistricts={};
+for(var i=0;i<data.length;i++){
+var d=safeStr(data[i].district);
+actualDistricts[d]=(actualDistricts[d]||0)+1;
+}
 console.log('District values in data:',actualDistricts);
 
-let total=data.length;
-let done=data.filter(isDone).length;
-let pending=data.filter(isPending).length;
-let progress=total>0?Math.round((done/total)*100):0;
+var total=data.length;
+var done=0,pending=0;
+for(var i=0;i<data.length;i++){
+if(isDone(data[i])) done++;
+else if(isPending(data[i])) pending++;
+}
+var progress=total>0?Math.round((done/total)*100):0;
 
-let totalParcels=data.reduce((sum,r)=>sum+safeNum(r.numberOfParcelsCreated),0);
+var totalParcels=0;
+for(var i=0;i<data.length;i++){
+totalParcels+=safeNum(data[i].numberOfParcelsCreated);
+}
 
-let totalDays=0,completedWithDates=0;
-data.forEach(r=>{
+var totalDays=0,completedWithDates=0;
+for(var i=0;i<data.length;i++){
+var r=data[i];
 if(isDone(r)&&r.dateOfAssign&&r.surveyCompletedDate){
-let start=new Date(r.dateOfAssign),end=new Date(r.surveyCompletedDate);
+var start=new Date(r.dateOfAssign),end=new Date(r.surveyCompletedDate);
 if(!isNaN(start.getTime())&&!isNaN(end.getTime())){
-let days=Math.ceil((end-start)/(1000*60*60*24));
+var days=Math.ceil((end-start)/(1000*60*60*24));
 if(days>=0&&days<1000){totalDays+=days;completedWithDates++;}
 }
 }
-});
-let avgDays=completedWithDates>0?(totalDays/completedWithDates).toFixed(1):'0';
+}
+var avgDays=completedWithDates>0?(totalDays/completedWithDates).toFixed(1):'0';
 
-let withIssues=data.filter(r=>safeStr(r.surveyRemarks)!=='').length;
-let issueRate=total>0?Math.round((withIssues/total)*100):0;
+var withIssues=0;
+for(var i=0;i<data.length;i++){
+if(safeStr(data[i].surveyRemarks)!=='') withIssues++;
+}
+var issueRate=total>0?Math.round((withIssues/total)*100):0;
 
-let districtStats={};
-districts.forEach(d=>{
-let dKey=d.toLowerCase();
-let dData=data.filter(r=>{
-let rd=safeLower(r.district);
-return rd===dKey||rd.includes(dKey)||dKey.includes(rd);
-});
+var districtStats={};
+for(var di=0;di<districts.length;di++){
+var d=districts[di];
+var dKey=d.toLowerCase();
+var dData=[];
+for(var i=0;i<data.length;i++){
+var rd=safeLower(data[i].district);
+if(rd===dKey||rd.indexOf(dKey)>=0||dKey.indexOf(rd)>=0) dData.push(data[i]);
+}
+var dDone=0,dPending=0,dParcels=0;
+for(var i=0;i<dData.length;i++){
+if(isDone(dData[i])) dDone++;
+else if(isPending(dData[i])) dPending++;
+dParcels+=safeNum(dData[i].numberOfParcelsCreated);
+}
 districtStats[d]={
 total:dData.length,
-done:dData.filter(isDone).length,
-pending:dData.filter(isPending).length,
-progress:dData.length>0?Math.round((dData.filter(isDone).length/dData.length)*100):0,
-parcels:dData.reduce((sum,r)=>sum+safeNum(r.numberOfParcelsCreated),0)
+done:dDone,
+pending:dPending,
+progress:dData.length>0?Math.round((dDone/dData.length)*100):0,
+parcels:dParcels
 };
-});
+}
 
-let methodStats={};
-districts.forEach(d=>{
-let dKey=d.toLowerCase();
-let dData=data.filter(r=>{let rd=safeLower(r.district);return rd===dKey||rd.includes(dKey)||dKey.includes(rd);});
-methodStats[d]={
-dgps:dData.filter(r=>safeLower(r.surveyedByDgpsOrMobile).includes('dgps')).length,
-mobile:dData.filter(r=>safeLower(r.surveyedByDgpsOrMobile).includes('mobile')).length
-};
-});
+var methodStats={};
+for(var di=0;di<districts.length;di++){
+var d=districts[di];
+var dKey=d.toLowerCase();
+var dData=[];
+for(var i=0;i<data.length;i++){
+var rd=safeLower(data[i].district);
+if(rd===dKey||rd.indexOf(dKey)>=0||dKey.indexOf(rd)>=0) dData.push(data[i]);
+}
+var dgps=0,mobile=0;
+for(var i=0;i<dData.length;i++){
+var m=safeLower(dData[i].surveyedByDgpsOrMobile);
+if(m.indexOf('dgps')>=0) dgps++;
+if(m.indexOf('mobile')>=0) mobile++;
+}
+methodStats[d]={dgps:dgps,mobile:mobile};
+}
 
-let surveyorMap={};
-data.forEach(r=>{
-let name=safeStr(r.surveyorName);
-if(!name||name.toLowerCase()==='unknown') return;
+var surveyorMap={};
+for(var i=0;i<data.length;i++){
+var r=data[i];
+var name=safeStr(r.surveyorName);
+if(!name||name.toLowerCase()==='unknown') continue;
 if(!surveyorMap[name]) surveyorMap[name]={done:0,pending:0,total:0,parcels:0,days:0,count:0};
 surveyorMap[name].total++;
 if(isDone(r)){
 surveyorMap[name].done++;
 surveyorMap[name].parcels+=safeNum(r.numberOfParcelsCreated);
 if(r.dateOfAssign&&r.surveyCompletedDate){
-let start=new Date(r.dateOfAssign),end=new Date(r.surveyCompletedDate);
+var start=new Date(r.dateOfAssign),end=new Date(r.surveyCompletedDate);
 if(!isNaN(start.getTime())&&!isNaN(end.getTime())){
-let days=Math.ceil((end-start)/(1000*60*60*24));
+var days=Math.ceil((end-start)/(1000*60*60*24));
 if(days>=0&&days<1000){surveyorMap[name].days+=days;surveyorMap[name].count++;}
 }
 }
 }else{
 surveyorMap[name].pending++;
 }
+}
+
+var surveyorList=[];
+var keys=Object.keys(surveyorMap);
+for(var i=0;i<keys.length;i++){
+var name=keys[i];
+var s=surveyorMap[name];
+surveyorList.push({
+name:name,
+done:s.done,
+pending:s.pending,
+total:s.total,
+parcels:s.parcels,
+days:s.days,
+count:s.count,
+avgParcels:s.done>0?(s.parcels/s.done).toFixed(1):'0',
+avgDays:s.count>0?(s.days/s.count).toFixed(1):'0'
 });
+}
+surveyorList.sort(function(a,b){return b.done-a.done;});
 
-let surveyorList=Object.entries(surveyorMap).map(([name,stats])=>({
-name,
-...stats,
-avgParcels:stats.done>0?(stats.parcels/stats.done).toFixed(1):'0',
-avgDays:stats.count>0?(stats.days/stats.count).toFixed(1):'0'
-})).sort((a,b)=>b.done-a.done);
-
-let today=new Date(),trendMap={};
-for(let i=13;i>=0;i--){
-let d=new Date(today);d.setDate(d.getDate()-i);
+var today=new Date();
+var trendMap={};
+for(var i=13;i>=0;i--){
+var d=new Date(today);
+d.setDate(d.getDate()-i);
 trendMap[d.toISOString().split('T')[0]]=0;
 }
-data.forEach(r=>{
+for(var i=0;i<data.length;i++){
+var r=data[i];
 if(isDone(r)&&r.surveyCompletedDate){
-let dk=String(r.surveyCompletedDate).split('T')[0];
+var dk=String(r.surveyCompletedDate).split('T')[0];
 if(trendMap[dk]!==undefined) trendMap[dk]++;
 }
-});
-let trendLabels=Object.keys(trendMap).map(d=>new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
-let trendValues=Object.values(trendMap);
+}
+var trendLabels=[];
+var trendKeys=Object.keys(trendMap);
+for(var i=0;i<trendKeys.length;i++){
+var date=new Date(trendKeys[i]);
+trendLabels.push(date.toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
+}
+var trendValues=Object.values(trendMap);
 
-let issuesData=data.filter(r=>safeStr(r.callingRemarks)!==''||safeStr(r.surveyRemarks)!=='').map(r=>({
+var issuesData=[];
+for(var i=0;i<data.length;i++){
+var r=data[i];
+if(safeStr(r.callingRemarks)!==''||safeStr(r.surveyRemarks)!==''){
+issuesData.push({
 ...r,
 hasCalling:safeStr(r.callingRemarks)!=='',
 hasSurvey:safeStr(r.surveyRemarks)!==''
-}));
+});
+}
+}
+
+var issuesCalling=0,issuesSurvey=0;
+for(var i=0;i<issuesData.length;i++){
+if(issuesData[i].hasCalling) issuesCalling++;
+if(issuesData[i].hasSurvey) issuesSurvey++;
+}
 
 processedData={
-total,done,pending,progress,totalParcels,avgDays,issueRate,
-districtStats,methodStats,surveyorList,trendLabels,trendValues,
-issuesData,
-issuesCalling:issuesData.filter(r=>r.hasCalling).length,
-issuesSurvey:issuesData.filter(r=>r.hasSurvey).length
+total:total,done:done,pending:pending,progress:progress,
+totalParcels:totalParcels,avgDays:avgDays,issueRate:issueRate,
+districtStats:districtStats,methodStats:methodStats,
+surveyorList:surveyorList,trendLabels:trendLabels,trendValues:trendValues,
+issuesData:issuesData,issuesCalling:issuesCalling,issuesSurvey:issuesSurvey
 };
 
-let districtTotalSum=Object.values(districtStats).reduce((s,d)=>s+d.total,0);
+var districtTotalSum=0;
+var dsKeys=Object.keys(districtStats);
+for(var i=0;i<dsKeys.length;i++){
+districtTotalSum+=districtStats[dsKeys[i]].total;
+}
 if(districtTotalSum<total*0.5){
-let panel=document.getElementById('debugPanel');
-let content=document.getElementById('debugContent');
+var panel=document.getElementById('debugPanel');
+var content=document.getElementById('debugContent');
 panel.classList.remove('hidden');
 content.textContent='WARNING: District names in your data do not match expected names.\n\n'+
 'Expected: Lahore, Kasur, Sheikhupura, Nankana Sahib\n'+
@@ -481,7 +547,7 @@ processedData={total:0,done:0,pending:0,progress:0,totalParcels:0,avgDays:'0',is
 }
 
 function renderAll(){
-if(!processedData)return;
+if(!processedData) return;
 renderKPIs();
 renderDistrictCards();
 renderCharts();
@@ -493,8 +559,8 @@ updateIssuesBadge();
 }
 
 function renderKPIs(){
-if(!processedData)return;
-let d=processedData;
+if(!processedData) return;
+var d=processedData;
 document.getElementById('kpiTotal').textContent=d.total.toLocaleString();
 document.getElementById('kpiDone').textContent=d.done.toLocaleString();
 document.getElementById('kpiPending').textContent=d.pending.toLocaleString();
@@ -505,17 +571,19 @@ document.getElementById('kpiIssueRate').textContent=d.issueRate+'%';
 }
 
 function renderDistrictCards(){
-let container=document.getElementById('districtCards');
+var container=document.getElementById('districtCards');
 if(!container||!processedData||!processedData.districtStats){
 if(container) container.innerHTML='<div class="col-span-4 text-center text-slate-500 py-8">No district data available</div>';
 return;
 }
-let districts=['Lahore','Kasur','Sheikhupura','Nankana Sahib'];
-let colors={'Lahore':'from-blue-500/20 to-blue-600/5','Kasur':'from-emerald-500/20 to-emerald-600/5','Sheikhupura':'from-purple-500/20 to-purple-600/5','Nankana Sahib':'from-amber-500/20 to-amber-600/5'};
-container.innerHTML=districts.map(d=>{
-let s=processedData.districtStats[d];
-if(!s)return'';
-return '<div class="glass rounded-xl p-4 card-hover district-card bg-gradient-to-br '+colors[d]+'">'+
+var districts=['Lahore','Kasur','Sheikhupura','Nankana Sahib'];
+var colors={'Lahore':'from-blue-500/20 to-blue-600/5','Kasur':'from-emerald-500/20 to-emerald-600/5','Sheikhupura':'from-purple-500/20 to-purple-600/5','Nankana Sahib':'from-amber-500/20 to-amber-600/5'};
+var html='';
+for(var i=0;i<districts.length;i++){
+var d=districts[i];
+var s=processedData.districtStats[d];
+if(!s) continue;
+html+='<div class="glass rounded-xl p-4 card-hover district-card bg-gradient-to-br '+colors[d]+'">'+
 '<div class="flex items-center justify-between mb-3"><h3 class="text-sm font-bold text-white">'+d+'</h3><span class="badge bg-slate-700 text-slate-300">'+s.total+' PSIDs</span></div>'+
 '<div class="grid grid-cols-3 gap-2 mb-3">'+
 '<div class="text-center"><p class="text-lg font-bold text-emerald-400">'+s.done+'</p><p class="text-[10px] text-slate-500">Done</p></div>'+
@@ -524,48 +592,65 @@ return '<div class="glass rounded-xl p-4 card-hover district-card bg-gradient-to
 '</div>'+
 '<div class="flex items-center gap-2"><div class="progress-bar flex-1"><div class="progress-fill bg-blue-500" style="width:'+s.progress+'%"></div></div><span class="text-xs font-bold text-blue-400 w-8 text-right">'+s.progress+'%</span></div>'+
 '</div>';
-}).join('');
+}
+container.innerHTML=html;
 }
 
 function renderCharts(){
-if(!processedData)return;
-let d=processedData,districts=['Lahore','Kasur','Sheikhupura','Nankana Sahib'];
-Object.values(charts).forEach(c=>c&&c.destroy());
+if(!processedData) return;
+var d=processedData;
+var districts=['Lahore','Kasur','Sheikhupura','Nankana Sahib'];
 
-let commonOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}};
+var chartKeys=Object.keys(charts);
+for(var i=0;i<chartKeys.length;i++){
+var c=charts[chartKeys[i]];
+if(c) c.destroy();
+}
+
+var commonOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}};
 
 charts.status=new Chart(document.getElementById('chartStatus'),{
 type:'doughnut',
 data:{labels:['Done','Pending'],datasets:[{data:[d.done,d.pending],backgroundColor:['#10b981','#f59e0b'],borderWidth:0,hoverOffset:4}]},
-options:{...commonOpts,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#94a3b8',padding:15,font:{size:11}}}}}
+options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#94a3b8',padding:15,font:{size:11}}}}}
 });
 
-let dgpsData=districts.map(d=>d.methodStats[d]?.dgps||0);
-let mobileData=districts.map(d=>d.methodStats[d]?.mobile||0);
+var dgpsData=[],mobileData=[];
+for(var i=0;i<districts.length;i++){
+var ms=processedData.methodStats[districts[i]];
+dgpsData.push(ms?ms.dgps:0);
+mobileData.push(ms?ms.mobile:0);
+}
 charts.method=new Chart(document.getElementById('chartMethod'),{
 type:'bar',
 data:{labels:districts,datasets:[{label:'DGPS',data:dgpsData,backgroundColor:'#3b82f6',borderRadius:4},{label:'Mobile',data:mobileData,backgroundColor:'#f59e0b',borderRadius:4}]},
-options:{...commonOpts,scales:{x:{stacked:true,ticks:{color:'#64748b',font:{size:10}},grid:{display:false}},y:{stacked:true,ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'}}}}
+options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},scales:{x:{stacked:true,ticks:{color:'#64748b',font:{size:10}},grid:{display:false}},y:{stacked:true,ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'}}}}
 });
 
-let top5=d.surveyorList.slice(0,5);
+var top5=[];
+for(var i=0;i<Math.min(5,d.surveyorList.length);i++) top5.push(d.surveyorList[i]);
+var sLabels=[],sData=[];
+for(var i=0;i<top5.length;i++){
+sLabels.push(top5[i].name.length>12?top5[i].name.substring(0,12)+'...':top5[i].name);
+sData.push(top5[i].done);
+}
 charts.surveyors=new Chart(document.getElementById('chartSurveyors'),{
 type:'bar',
-data:{labels:top5.map(s=>s.name.length>12?s.name.substring(0,12)+'...':s.name),datasets:[{label:'Surveys Completed',data:top5.map(s=>s.done),backgroundColor:'#10b981',borderRadius:4}]},
-options:{...commonOpts,indexAxis:'y',scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'}},y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{display:false}}}}
+data:{labels:sLabels,datasets:[{label:'Surveys Completed',data:sData,backgroundColor:'#10b981',borderRadius:4}]},
+options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'}},y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{display:false}}}}
 });
 
 charts.trend=new Chart(document.getElementById('chartTrend'),{
 type:'line',
 data:{labels:d.trendLabels,datasets:[{label:'Completed',data:d.trendValues,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.1)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:'#3b82f6'}]},
-options:{...commonOpts,scales:{x:{ticks:{color:'#64748b',font:{size:9},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'},beginAtZero:true}}}
+options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},scales:{x:{ticks:{color:'#64748b',font:{size:9},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'},beginAtZero:true}}}
 });
 }
 
 function updateIssuesBadge(){
-let badge=document.getElementById('issuesBadge');
-if(!processedData)return;
-let count=processedData.issuesData.length;
+var badge=document.getElementById('issuesBadge');
+if(!processedData) return;
+var count=processedData.issuesData.length;
 if(count>0){badge.textContent=count;badge.classList.remove('hidden');}
 document.getElementById('issuesTotalCount').textContent=count;
 document.getElementById('issuesCallingCount').textContent=processedData.issuesCalling;
@@ -574,7 +659,9 @@ document.getElementById('issuesSurveyCount').textContent=processedData.issuesSur
 
 function filterIssues(type){
 issuesFilter=type;
-document.querySelectorAll('.issue-filter').forEach(btn=>{
+var btns=document.querySelectorAll('.issue-filter');
+for(var i=0;i<btns.length;i++){
+var btn=btns[i];
 if(btn.dataset.filter===type){
 btn.classList.add('bg-blue-600/20','text-blue-400','border-blue-500/30');
 btn.classList.remove('bg-slate-800','text-slate-400','border-slate-700');
@@ -582,99 +669,154 @@ btn.classList.remove('bg-slate-800','text-slate-400','border-slate-700');
 btn.classList.remove('bg-blue-600/20','text-blue-400','border-blue-500/30');
 btn.classList.add('bg-slate-800','text-slate-400','border-slate-700');
 }
-});
+}
 renderIssues();
 }
 
 function renderIssues(){
-if(!processedData)return;
-let search=(document.getElementById('issuesSearch').value||'').toLowerCase();
-let filtered=processedData.issuesData;
-if(issuesFilter==='calling') filtered=filtered.filter(r=>r.hasCalling);
-else if(issuesFilter==='survey') filtered=filtered.filter(r=>r.hasSurvey);
-if(search) filtered=filtered.filter(r=>safeLower(r.psid).includes(search)||safeLower(r.ownerName).includes(search)||safeLower(r.district).includes(search)||safeLower(r.callingRemarks).includes(search)||safeLower(r.surveyRemarks).includes(search));
+if(!processedData) return;
+var search=(document.getElementById('issuesSearch').value||'').toLowerCase();
+var filtered=processedData.issuesData;
+if(issuesFilter==='calling'){
+var temp=[];
+for(var i=0;i<filtered.length;i++) if(filtered[i].hasCalling) temp.push(filtered[i]);
+filtered=temp;
+}else if(issuesFilter==='survey'){
+var temp=[];
+for(var i=0;i<filtered.length;i++) if(filtered[i].hasSurvey) temp.push(filtered[i]);
+filtered=temp;
+}
+if(search){
+var temp=[];
+for(var i=0;i<filtered.length;i++){
+var r=filtered[i];
+if(safeLower(r.psid).indexOf(search)>=0||safeLower(r.ownerName).indexOf(search)>=0||safeLower(r.district).indexOf(search)>=0||safeLower(r.callingRemarks).indexOf(search)>=0||safeLower(r.surveyRemarks).indexOf(search)>=0){
+temp.push(r);
+}
+}
+filtered=temp;
+}
 
-let tbody=document.getElementById('issuesTableBody'),empty=document.getElementById('issuesEmpty');
+var tbody=document.getElementById('issuesTableBody'),empty=document.getElementById('issuesEmpty');
 if(filtered.length===0){tbody.innerHTML='';empty.classList.remove('hidden');return;}
 empty.classList.add('hidden');
-tbody.innerHTML=filtered.map(r=>{
-let status=isDone(r)?'<span class="badge status-done">Done</span>':'<span class="badge status-pending">Pending</span>';
-let type='',remark='',typeClass='';
-if(issuesFilter==='all'){if(r.hasSurvey){type='Survey';remark=r.surveyRemarks;typeClass='issue-type-survey';}else{type='Calling';remark=r.callingRemarks;typeClass='issue-type-calling';}}
-else if(issuesFilter==='calling'){type='Calling';remark=r.callingRemarks;typeClass='issue-type-calling';}
+
+var html='';
+for(var i=0;i<filtered.length;i++){
+var r=filtered[i];
+var status=isDone(r)?'<span class="badge status-done">Done</span>':'<span class="badge status-pending">Pending</span>';
+var type='',remark='',typeClass='';
+if(issuesFilter==='all'){
+if(r.hasSurvey){type='Survey';remark=r.surveyRemarks;typeClass='issue-type-survey';}
+else{type='Calling';remark=r.callingRemarks;typeClass='issue-type-calling';}
+}else if(issuesFilter==='calling'){type='Calling';remark=r.callingRemarks;typeClass='issue-type-calling';}
 else{type='Survey';remark=r.surveyRemarks;typeClass='issue-type-survey';}
-return '<tr class="hover:bg-slate-800/30 transition '+typeClass+'"><td class="px-4 py-2.5 font-mono text-slate-300">'+(r.psid||'-')+'</td><td class="px-4 py-2.5 text-slate-400">'+(r.district||'-')+'</td><td class="px-4 py-2.5 text-slate-400">'+(r.surveyorName||'-')+'</td><td class="px-4 py-2.5">'+status+'</td><td class="px-4 py-2.5"><span class="badge '+(type==='Survey'?'status-issue':'status-pending')+'">'+type+'</span></td><td class="px-4 py-2.5 remark-text max-w-md">'+(remark||'-')+'</td></tr>';
-}).join('');
+html+='<tr class="hover:bg-slate-800/30 transition '+typeClass+'"><td class="px-4 py-2.5 font-mono text-slate-300">'+(r.psid||'-')+'</td><td class="px-4 py-2.5 text-slate-400">'+(r.district||'-')+'</td><td class="px-4 py-2.5 text-slate-400">'+(r.surveyorName||'-')+'</td><td class="px-4 py-2.5">'+status+'</td><td class="px-4 py-2.5"><span class="badge '+(type==='Survey'?'status-issue':'status-pending')+'">'+type+'</span></td><td class="px-4 py-2.5 remark-text max-w-md">'+(remark||'-')+'</td></tr>';
+}
+tbody.innerHTML=html;
 }
 
 function searchIssues(){renderIssues();}
 
 function renderSurveyors(){
-if(!processedData)return;
-let tbody=document.getElementById('surveyorsTableBody'),list=processedData.surveyorList;
-tbody.innerHTML=list.map((s,i)=>'<tr class="hover:bg-slate-800/30 transition"><td class="px-4 py-2.5 text-slate-500 font-mono">'+(i+1)+'</td><td class="px-4 py-2.5 font-medium text-white">'+s.name+'</td><td class="px-4 py-2.5 text-center text-emerald-400 font-bold">'+s.done+'</td><td class="px-4 py-2.5 text-center text-amber-400">'+s.pending+'</td><td class="px-4 py-2.5 text-center text-slate-300">'+s.total+'</td><td class="px-4 py-2.5 text-center text-purple-400">'+s.avgParcels+'</td><td class="px-4 py-2.5 text-center text-cyan-400">'+s.avgDays+'</td></tr>').join('');
+if(!processedData) return;
+var tbody=document.getElementById('surveyorsTableBody');
+var list=processedData.surveyorList;
+var html='';
+for(var i=0;i<list.length;i++){
+var s=list[i];
+html+='<tr class="hover:bg-slate-800/30 transition"><td class="px-4 py-2.5 text-slate-500 font-mono">'+(i+1)+'</td><td class="px-4 py-2.5 font-medium text-white">'+s.name+'</td><td class="px-4 py-2.5 text-center text-emerald-400 font-bold">'+s.done+'</td><td class="px-4 py-2.5 text-center text-amber-400">'+s.pending+'</td><td class="px-4 py-2.5 text-center text-slate-300">'+s.total+'</td><td class="px-4 py-2.5 text-center text-purple-400">'+s.avgParcels+'</td><td class="px-4 py-2.5 text-center text-cyan-400">'+s.avgDays+'</td></tr>';
+}
+tbody.innerHTML=html;
 
-if(charts.surveyorBar)charts.surveyorBar.destroy();
-let top10=list.slice(0,10);
+if(charts.surveyorBar) charts.surveyorBar.destroy();
+var top10=[];
+for(var i=0;i<Math.min(10,list.length);i++) top10.push(list[i]);
+var sLabels=[],sDone=[],sPending=[];
+for(var i=0;i<top10.length;i++){
+sLabels.push(top10[i].name.length>10?top10[i].name.substring(0,10)+'...':top10[i].name);
+sDone.push(top10[i].done);
+sPending.push(top10[i].pending);
+}
 charts.surveyorBar=new Chart(document.getElementById('chartSurveyorBar'),{
 type:'bar',
-data:{labels:top10.map(s=>s.name.length>10?s.name.substring(0,10)+'...':s.name),datasets:[{label:'Done',data:top10.map(s=>s.done),backgroundColor:'#10b981',borderRadius:3},{label:'Pending',data:top10.map(s=>s.pending),backgroundColor:'#f59e0b',borderRadius:3}]},
+data:{labels:sLabels,datasets:[{label:'Done',data:sDone,backgroundColor:'#10b981',borderRadius:3},{label:'Pending',data:sPending,backgroundColor:'#f59e0b',borderRadius:3}]},
 options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},scales:{x:{ticks:{color:'#64748b',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'},beginAtZero:true}}}
 });
 }
 
 function populateRawFilters(){
-let districts=[...new Set(rawData.map(r=>r.district).filter(Boolean))].sort();
-let surveyors=[...new Set(rawData.map(r=>r.surveyorName).filter(Boolean))].sort();
-let dSelect=document.getElementById('rawFilterDistrict');
-dSelect.innerHTML='<option value="">All Districts</option>'+districts.map(d=>'<option value="'+d+'">'+d+'</option>').join('');
-let sSelect=document.getElementById('rawFilterSurveyor');
-sSelect.innerHTML='<option value="">All Surveyors</option>'+surveyors.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
+var districtSet={},surveyorSet={};
+for(var i=0;i<rawData.length;i++){
+if(rawData[i].district) districtSet[rawData[i].district]=true;
+if(rawData[i].surveyorName) surveyorSet[rawData[i].surveyorName]=true;
+}
+var districts=Object.keys(districtSet).sort();
+var surveyors=Object.keys(surveyorSet).sort();
+var dSelect=document.getElementById('rawFilterDistrict');
+dSelect.innerHTML='<option value="">All Districts</option>';
+for(var i=0;i<districts.length;i++) dSelect.innerHTML+='<option value="'+districts[i]+'">'+districts[i]+'</option>';
+var sSelect=document.getElementById('rawFilterSurveyor');
+sSelect.innerHTML='<option value="">All Surveyors</option>';
+for(var i=0;i<surveyors.length;i++) sSelect.innerHTML+='<option value="'+surveyors[i]+'">'+surveyors[i]+'</option>';
 }
 
 function filterRawData(){
-let search=(document.getElementById('rawSearch').value||'').toLowerCase();
-let district=document.getElementById('rawFilterDistrict').value;
-let status=document.getElementById('rawFilterStatus').value;
-let surveyor=document.getElementById('rawFilterSurveyor').value;
-filteredRawData=rawData.filter(r=>{
-let ms=!search||safeLower(r.psid).includes(search)||safeLower(r.ownerName).includes(search);
-let md=!district||safeStr(r.district)===district;
-let ms2=!status||safeLower(r.surveyStatus)===status.toLowerCase();
-let ms3=!surveyor||safeStr(r.surveyorName)===surveyor;
-return ms&&md&&ms2&&ms3;
-});
+var search=(document.getElementById('rawSearch').value||'').toLowerCase();
+var district=document.getElementById('rawFilterDistrict').value;
+var status=document.getElementById('rawFilterStatus').value;
+var surveyor=document.getElementById('rawFilterSurveyor').value;
+filteredRawData=[];
+for(var i=0;i<rawData.length;i++){
+var r=rawData[i];
+var ms=!search||safeLower(r.psid).indexOf(search)>=0||safeLower(r.ownerName).indexOf(search)>=0;
+var md=!district||safeStr(r.district)===district;
+var ms2=!status||safeLower(r.surveyStatus)===status.toLowerCase();
+var ms3=!surveyor||safeStr(r.surveyorName)===surveyor;
+if(ms&&md&&ms2&&ms3) filteredRawData.push(r);
+}
 rawPage=1;
 renderRawTable();
 }
 
 function renderRawTable(){
-let start=(rawPage-1)*rawPerPage,end=start+rawPerPage;
-let pageData=filteredRawData.slice(start,end);
-let totalPages=Math.ceil(filteredRawData.length/rawPerPage)||1;
+var start=(rawPage-1)*rawPerPage,end=start+rawPerPage;
+var pageData=[];
+for(var i=start;i<Math.min(end,filteredRawData.length);i++) pageData.push(filteredRawData[i]);
+var totalPages=Math.ceil(filteredRawData.length/rawPerPage)||1;
 document.getElementById('rawShowing').textContent=filteredRawData.length;
 document.getElementById('rawTotal').textContent=rawData.length;
-let tbody=document.getElementById('rawTableBody');
-tbody.innerHTML=pageData.map(r=>{
-let status=isDone(r)?'<span class="badge status-done">Done</span>':'<span class="badge status-pending">Pending</span>';
-let method=safeStr(r.surveyedByDgpsOrMobile);
-return '<tr class="hover:bg-slate-800/30 transition"><td class="px-3 py-2 font-mono text-slate-300">'+(r.psid||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.district||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.tehsil||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.mouza||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.khasraNumber||'-')+'</td><td class="px-3 py-2 text-slate-300">'+(r.ownerName||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.surveyorName||'-')+'</td><td class="px-3 py-2 text-center">'+status+'</td><td class="px-3 py-2 text-center text-purple-400">'+(r.numberOfParcelsCreated||'0')+'</td><td class="px-3 py-2 text-center text-slate-400">'+method+'</td><td class="px-3 py-2 text-slate-500 max-w-xs truncate" title="'+(r.surveyRemarks||'')+'">'+(r.surveyRemarks||'-')+'</td></tr>';
-}).join('');
-
-let pages=[];
-for(let i=1;i<=totalPages;i++){
-if(i===1||i===totalPages||(i>=rawPage-1&&i<=rawPage+1))pages.push(i);
-else if(i===rawPage-2||i===rawPage+2)pages.push('...');
+var tbody=document.getElementById('rawTableBody');
+var html='';
+for(var i=0;i<pageData.length;i++){
+var r=pageData[i];
+var status=isDone(r)?'<span class="badge status-done">Done</span>':'<span class="badge status-pending">Pending</span>';
+var method=safeStr(r.surveyedByDgpsOrMobile);
+html+='<tr class="hover:bg-slate-800/30 transition"><td class="px-3 py-2 font-mono text-slate-300">'+(r.psid||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.district||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.tehsil||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.mouza||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.khasraNumber||'-')+'</td><td class="px-3 py-2 text-slate-300">'+(r.ownerName||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.surveyorName||'-')+'</td><td class="px-3 py-2 text-center">'+status+'</td><td class="px-3 py-2 text-center text-purple-400">'+(r.numberOfParcelsCreated||'0')+'</td><td class="px-3 py-2 text-center text-slate-400">'+method+'</td><td class="px-3 py-2 text-slate-500 max-w-xs truncate" title="'+(r.surveyRemarks||'')+'">'+(r.surveyRemarks||'-')+'</td></tr>';
 }
-pages=pages.filter((v,i,a)=>v!=='...'||a[i-1]!=='...');
-document.getElementById('rawPagination').innerHTML=pages.map(p=>{
-if(p==='...')return'<span class="text-slate-600 text-xs px-1">...</span>';
-return'<button onclick="goToPage('+p+')" class="page-btn '+(p===rawPage?'active':'bg-slate-800 text-slate-400 hover:bg-slate-700')+' transition">'+p+'</button>';
-}).join('');
+tbody.innerHTML=html;
+
+var pages=[];
+for(var i=1;i<=totalPages;i++){
+if(i===1||i===totalPages||(i>=rawPage-1&&i<=rawPage+1)) pages.push(i);
+else if(i===rawPage-2||i===rawPage+2) pages.push('...');
+}
+var filteredPages=[];
+for(var i=0;i<pages.length;i++){
+if(pages[i]==='...'&&filteredPages.length>0&&filteredPages[filteredPages.length-1]==='...') continue;
+filteredPages.push(pages[i]);
+}
+var pHtml='';
+for(var i=0;i<filteredPages.length;i++){
+var p=filteredPages[i];
+if(p==='...') pHtml+='<span class="text-slate-600 text-xs px-1">...</span>';
+else pHtml+='<button onclick="goToPage('+p+')" class="page-btn '+(p===rawPage?'active':'bg-slate-800 text-slate-400 hover:bg-slate-700')+' transition">'+p+'</button>';
+}
+document.getElementById('rawPagination').innerHTML=pHtml;
 }
 
 function changePage(dir){
-let totalPages=Math.ceil(filteredRawData.length/rawPerPage)||1;
+var totalPages=Math.ceil(filteredRawData.length/rawPerPage)||1;
 rawPage=Math.max(1,Math.min(totalPages,rawPage+dir));
 renderRawTable();
 }
@@ -686,9 +828,12 @@ renderRawTable();
 
 function switchTab(tab){
 currentTab=tab;
-document.querySelectorAll('.tab-content').forEach(el=>el.classList.add('hidden'));
+var contents=document.querySelectorAll('.tab-content');
+for(var i=0;i<contents.length;i++) contents[i].classList.add('hidden');
 document.getElementById('tab-'+tab).classList.remove('hidden');
-document.querySelectorAll('.tab-btn').forEach(btn=>{
+var btns=document.querySelectorAll('.tab-btn');
+for(var i=0;i<btns.length;i++){
+var btn=btns[i];
 if(btn.dataset.tab===tab){
 btn.classList.add('active');
 btn.classList.remove('text-slate-500');
@@ -696,7 +841,7 @@ btn.classList.remove('text-slate-500');
 btn.classList.remove('active');
 btn.classList.add('text-slate-500');
 }
-});
+}
 }
 
 init();
