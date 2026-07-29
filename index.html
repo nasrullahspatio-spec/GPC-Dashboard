@@ -214,7 +214,7 @@ td.italic-remark{font-style:italic;color:var(--muted);max-width:320px;}
           <p id="dashSub">Lahore Division · Punjab Land Records Authority</p>
         </div>
         <div class="file-meta">
-          <div><span class="live-dot"></span>LIVE<button class="refresh-btn" id="refreshBtn" onclick="fetchData()" title="Refresh">⟳</button></div>
+          <div><span class="live-dot"></span>LIVE<button class="refresh-btn" id="refreshBtn" onclick="fetchData()" title="Refresh">⟳</button><button class="refresh-btn" id="debugToggleBtn" onclick="toggleDebug()" title="Data check" style="width:auto;padding:0 8px;font-size:10px;font-family:var(--font-mono);letter-spacing:0.05em;">CHECK DATA</button></div>
           <div class="rev">Last entry: <span id="lastUpdated">—</span></div>
         </div>
       </div>
@@ -410,11 +410,26 @@ async function fetchData(){
     if(!res.ok) throw new Error('Apps Script returned status '+res.status);
     var json=await res.json();
     rawData=Array.isArray(json.data)?json.data:[];
-    if(json.errors&&json.errors.length){
-      var dbg=document.getElementById('debugPanel');
-      dbg.style.display='block';
-      document.getElementById('debugContent').textContent=json.errors.join('\n');
+
+    var debugLines=[];
+    debugLines.push('Header row used: sheet row '+(json.headerRowUsed||'?'));
+    debugLines.push('');
+    debugLines.push('Rows accepted per district (compare against the sheet yourself):');
+    if(json.districtCounts){
+      Object.keys(json.districtCounts).forEach(function(d){
+        debugLines.push('  '+d+': '+json.districtCounts[d]);
+      });
     }
+    if(json.errors&&json.errors.length){
+      debugLines.push('');
+      debugLines.push('Problems found:');
+      json.errors.forEach(function(e){debugLines.push('  ⚑ '+e);});
+    }
+    document.getElementById('debugContent').textContent=debugLines.join('\n');
+    if(json.errors&&json.errors.length){
+      document.getElementById('debugPanel').style.display='block';
+    }
+
     if(rawData.length===0) throw new Error('No records received. Check the Sheet IDs in the Apps Script.');
     document.getElementById('lastUpdated').textContent=new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
     process();
@@ -709,6 +724,11 @@ function changeRegPage(dir){
   renderRegister();
 }
 function goToRegPage(p){regPage=p;renderRegister();}
+
+function toggleDebug(){
+  var dbg=document.getElementById('debugPanel');
+  dbg.style.display=(dbg.style.display==='block')?'none':'block';
+}
 
 function switchTab(tab){
   document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active');});
