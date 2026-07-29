@@ -3,845 +3,717 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Punjab GIS — Lahore Division Survey Operations</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<title>Field Survey Register — Lahore Division</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*{font-family:'Inter',sans-serif;}body{background:#0b1120;}
-.glass{background:rgba(30,41,59,0.7);backdrop-filter:blur(12px);border:1px solid rgba(148,163,184,0.08);}
-.card-hover{transition:all 0.2s ease;}.card-hover:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,0.3);border-color:rgba(59,130,246,0.3);}
-.tab-btn{transition:all 0.2s;}.tab-btn.active{background:rgba(59,130,246,0.15);color:#60a5fa;border-color:rgba(59,130,246,0.4);}
-.progress-bar{height:6px;border-radius:3px;background:rgba(255,255,255,0.06);overflow:hidden;}
-.progress-fill{height:100%;border-radius:3px;transition:width 0.8s ease;}
-.kpi-value{font-size:1.5rem;font-weight:700;line-height:1;}
-.kpi-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;color:#94a3b8;}
-.district-card{min-height:140px;}
-.chart-container{position:relative;height:220px;}
-.table-container{max-height:60vh;overflow:auto;}
-.table-container::-webkit-scrollbar{width:6px;height:6px;}
-.table-container::-webkit-scrollbar-thumb{background:rgba(148,163,184,0.2);border-radius:3px;}
-.badge{font-size:0.65rem;padding:2px 8px;border-radius:999px;font-weight:600;}
-.status-done{background:rgba(16,185,129,0.15);color:#34d399;}
-.status-pending{background:rgba(245,158,11,0.15);color:#fbbf24;}
-.status-issue{background:rgba(239,68,68,0.15);color:#f87171;}
-.pulse{animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
-.loading-spinner{width:40px;height:40px;border:3px solid rgba(59,130,246,0.2);border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;}
+:root{
+  --ink-950:#14170F;
+  --ink-900:#191D14;
+  --ink-850:#20251A;
+  --ink-800:#262C1F;
+  --line:rgba(158,164,138,0.16);
+  --line-soft:rgba(158,164,138,0.08);
+  --paper:#EAE3D2;
+  --paper-dim:#A9A48D;
+  --brass:#C9A24B;
+  --brass-dim:#8F7A42;
+  --green:#6E9C63;
+  --green-dim:#3E5A38;
+  --red:#C1594A;
+  --red-dim:#7A362C;
+  --steel:#7FA0B3;
+  --muted:#8B9280;
+  --font-display:'Fraunces',serif;
+  --font-body:'IBM Plex Sans',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:var(--font-body);
+  color:var(--paper);
+  background-color:var(--ink-950);
+  background-image:
+    linear-gradient(var(--line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+  background-size:26px 26px;
+  min-height:100vh;
+}
+::selection{background:var(--brass);color:var(--ink-950);}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--ink-800);border-radius:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+a,button{font-family:inherit;}
+button{cursor:pointer;border:none;background:none;color:inherit;}
+
+.wrap{max-width:1440px;margin:0 auto;padding:0 20px;}
+
+/* ---------- loading / error ---------- */
+#loadingScreen,#errorScreen{
+  position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;background:var(--ink-950);gap:14px;
+}
+.stamp-spin{width:44px;height:44px;border:3px solid var(--line);border-top-color:var(--brass);border-radius:50%;animation:spin 0.9s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.fade-in{animation:fadeIn 0.4s ease;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-.remark-text{font-style:italic;color:#cbd5e1;}
-.search-input{background:rgba(15,23,42,0.8);border:1px solid rgba(148,163,184,0.15);}
-.search-input:focus{outline:none;border-color:rgba(59,130,246,0.5);box-shadow:0 0 0 3px rgba(59,130,246,0.1);}
-.page-btn{min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:0.75rem;}
-.page-btn.active{background:#3b82f6;color:white;}
-.issue-type-calling{border-left:3px solid #f59e0b;}
-.issue-type-survey{border-left:3px solid #ef4444;}
-.debug-panel{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);}
+#loadingScreen p{color:var(--muted);font-size:13px;letter-spacing:0.04em;}
+#errorScreen{display:none;}
+.error-box{border:1px solid var(--red-dim);background:rgba(193,89,74,0.08);border-radius:2px;padding:22px 26px;max-width:460px;text-align:left;}
+.error-box h2{font-family:var(--font-display);color:var(--red);font-size:19px;margin-bottom:8px;}
+.error-box p{color:var(--paper-dim);font-size:13px;line-height:1.6;margin-bottom:14px;}
+.error-box ol{color:var(--paper-dim);font-size:12.5px;line-height:1.9;padding-left:18px;}
+.error-box code{background:var(--ink-800);color:var(--brass);padding:1px 5px;border-radius:2px;font-family:var(--font-mono);}
+.retry-btn{margin-top:16px;padding:8px 18px;border:1px solid var(--brass-dim);color:var(--brass);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;border-radius:2px;}
+.retry-btn:hover{background:var(--brass);color:var(--ink-950);}
+
+/* ---------- letterhead header ---------- */
+#app{display:none;}
+header.letterhead{border-bottom:2px solid var(--line);padding:22px 0 16px;}
+.letterhead-row{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;}
+.eyebrow{font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--brass);margin-bottom:6px;}
+.title-block h1{font-family:var(--font-display);font-weight:600;font-size:clamp(22px,3vw,32px);color:var(--paper);letter-spacing:0.01em;}
+.title-block p{font-size:12.5px;color:var(--muted);margin-top:4px;}
+.file-meta{text-align:right;font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+.file-meta .rev{color:var(--paper-dim);}
+.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px;box-shadow:0 0 0 3px rgba(110,156,99,0.15);}
+.refresh-btn{margin-left:10px;border:1px solid var(--line);color:var(--paper-dim);width:26px;height:26px;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;vertical-align:middle;transition:all .15s;}
+.refresh-btn:hover{border-color:var(--brass);color:var(--brass);}
+.refresh-btn.spin{animation:spin 0.8s linear infinite;}
+
+/* debug */
+.debug-panel{border:1px dashed var(--red-dim);background:rgba(193,89,74,0.06);border-radius:2px;padding:14px 16px;margin-top:16px;display:none;}
+.debug-panel h3{font-family:var(--font-mono);font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;}
+.debug-panel pre{font-family:var(--font-mono);font-size:11px;color:var(--paper-dim);white-space:pre-wrap;}
+
+/* ---------- folder tab nav ---------- */
+nav.tabs{display:flex;gap:4px;margin-top:18px;border-bottom:1px solid var(--line);}
+.tab-btn{padding:9px 16px;font-size:12.5px;color:var(--muted);border:1px solid transparent;border-bottom:none;border-radius:4px 4px 0 0;letter-spacing:0.02em;position:relative;top:1px;transition:all .15s;}
+.tab-btn .count{font-family:var(--font-mono);font-size:10px;background:var(--red-dim);color:var(--paper);padding:1px 6px;border-radius:8px;margin-left:6px;}
+.tab-btn:hover{color:var(--paper);}
+.tab-btn.active{color:var(--brass);background:var(--ink-900);border-color:var(--line);border-bottom:1px solid var(--ink-900);}
+
+.tab-content{padding:24px 0 50px;display:none;}
+.tab-content.active{display:block;}
+
+/* ---------- ledger strip (KPIs) ---------- */
+.ledger-strip{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--line);border-radius:2px;overflow:hidden;margin-bottom:20px;background:var(--ink-900);}
+.ledger-cell{padding:14px 12px;border-right:1px solid var(--line);}
+.ledger-cell:last-child{border-right:none;}
+.ledger-label{font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.ledger-value{font-family:var(--font-mono);font-size:24px;font-weight:600;line-height:1;}
+.ledger-sub{font-size:10px;color:var(--muted);margin-top:5px;}
+.v-paper{color:var(--paper);}
+.v-green{color:var(--green);}
+.v-brass{color:var(--brass);}
+.v-red{color:var(--red);}
+.v-steel{color:var(--steel);}
+
+@media (max-width:900px){.ledger-strip{grid-template-columns:repeat(3,1fr);}.ledger-cell:nth-child(3n){border-right:none;}.ledger-cell{border-bottom:1px solid var(--line);}}
+@media (max-width:520px){.ledger-strip{grid-template-columns:repeat(2,1fr);}.ledger-cell:nth-child(2n){border-right:none;}}
+
+/* ---------- section heading ---------- */
+.section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;}
+.section-head h3{font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--paper-dim);text-transform:uppercase;letter-spacing:0.06em;}
+.section-head .hint{font-size:11px;color:var(--muted);}
+
+/* ---------- district folios ---------- */
+.folio-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:24px;}
+.folio{border:1px solid var(--line);background:var(--ink-900);border-radius:2px;padding:14px 16px;position:relative;}
+.folio::before{content:'';position:absolute;top:0;left:14px;width:26px;height:3px;background:var(--brass-dim);}
+.folio-name{font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--paper);margin-bottom:10px;}
+.folio-row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+.folio-row b{font-family:var(--font-mono);color:var(--paper-dim);font-weight:600;}
+.folio-bar{height:5px;border-radius:3px;background:var(--ink-800);overflow:hidden;margin-top:10px;}
+.folio-fill{height:100%;background:var(--green);border-radius:3px;}
+.folio-pct{font-family:var(--font-mono);font-size:11px;color:var(--brass);margin-top:6px;text-align:right;}
+
+/* ---------- charts grid ---------- */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px;}
+.chart-card{border:1px solid var(--line);background:var(--ink-900);border-radius:2px;padding:16px;}
+.chart-box{position:relative;height:230px;}
+@media (max-width:880px){.chart-grid{grid-template-columns:1fr;}}
+
+/* ---------- stamps ---------- */
+.stamp{
+  display:inline-block;font-family:var(--font-mono);font-size:10px;font-weight:700;
+  letter-spacing:0.1em;text-transform:uppercase;padding:3px 9px;
+  border:1.5px solid currentColor;outline:1px solid currentColor;outline-offset:2px;
+  border-radius:2px 9px 2px 9px;transform:rotate(-2deg);white-space:nowrap;
+}
+.stamp-done{color:var(--green);background:rgba(110,156,99,0.08);}
+.stamp-pending{color:var(--brass);background:rgba(201,162,75,0.08);}
+.stamp-issue{color:var(--red);background:rgba(193,89,74,0.08);}
+.overdue-flag{font-family:var(--font-mono);font-size:10px;color:var(--red);letter-spacing:0.04em;}
+
+/* ---------- filters / inputs ---------- */
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border:1px solid var(--line);background:var(--ink-900);padding:12px 14px;border-radius:2px;margin-bottom:14px;}
+.ipt,select.ipt{background:var(--ink-850);border:1px solid var(--line);color:var(--paper);font-size:12.5px;padding:7px 10px;border-radius:2px;font-family:var(--font-body);}
+.ipt:focus,select.ipt:focus{outline:none;border-color:var(--brass-dim);}
+.ipt.search{flex:1;min-width:190px;}
+.chip{padding:6px 13px;font-size:11.5px;border:1px solid var(--line);border-radius:2px;color:var(--muted);letter-spacing:0.02em;}
+.chip.active{border-color:var(--brass-dim);color:var(--brass);background:rgba(201,162,75,0.08);}
+.tally{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-left:auto;}
+.tally b{color:var(--paper);}
+.tally .amber{color:var(--brass);}
+.tally .red{color:var(--red);}
+
+/* ---------- tables ---------- */
+.reg-table-wrap{border:1px solid var(--line);background:var(--ink-900);border-radius:2px;overflow:hidden;}
+.reg-scroll{max-height:60vh;overflow:auto;}
+table{width:100%;border-collapse:collapse;font-size:11.5px;}
+thead th{position:sticky;top:0;background:var(--ink-850);text-align:left;padding:9px 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);z-index:2;}
+tbody td{padding:8px 12px;border-bottom:1px solid var(--line-soft);color:var(--paper-dim);vertical-align:top;}
+tbody tr:hover{background:rgba(201,162,75,0.04);}
+td.mono{font-family:var(--font-mono);color:var(--paper);}
+td.italic-remark{font-style:italic;color:var(--muted);max-width:320px;}
+.empty-state{padding:50px 20px;text-align:center;color:var(--muted);}
+.empty-state .mark{font-size:26px;color:var(--green);margin-bottom:8px;}
+
+.pager{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-top:1px solid var(--line);}
+.pg-btn{min-width:28px;height:28px;font-family:var(--font-mono);font-size:11px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:2px;color:var(--muted);}
+.pg-btn:hover{border-color:var(--brass-dim);color:var(--brass);}
+.pg-btn.active{background:var(--brass);color:var(--ink-950);border-color:var(--brass);font-weight:700;}
+.pg-arrow{color:var(--paper-dim);}
+
+/* surveyors two-col */
+.surveyor-layout{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;}
+@media (max-width:900px){.surveyor-layout{grid-template-columns:1fr;}}
+.rank{font-family:var(--font-mono);color:var(--muted);}
 </style>
-<base target="_blank">
 </head>
-<body class="text-slate-300 min-h-screen">
+<body>
 
-<div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950">
-<div class="loading-spinner mb-4"></div>
-<p class="text-slate-400 text-sm">Loading dashboard configuration...</p>
-</div>
-
-<div id="errorScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 hidden">
-<div class="text-5xl mb-4">⚠️</div>
-<h2 class="text-xl font-bold text-white mb-2" id="errorTitle">Configuration Error</h2>
-<p class="text-slate-400 text-sm max-w-md text-center mb-6" id="errorMessage">Something went wrong.</p>
-<div class="glass rounded-lg p-4 max-w-lg w-full mx-4">
-<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">How to fix:</h3>
-<ol class="text-sm text-slate-300 space-y-2 list-decimal list-inside" id="errorSteps">
-<li>Make sure <code class="bg-slate-800 px-1 rounded text-blue-400">config.json</code> is in the same folder as this HTML file</li>
-<li>Open <code class="bg-slate-800 px-1 rounded text-blue-400">config.json</code> and paste your Apps Script URL</li>
-<li>Refresh this page</li>
-</ol>
-</div>
-<button onclick="location.reload()" class="mt-6 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition">Retry</button>
+<div id="loadingScreen">
+  <div class="stamp-spin"></div>
+  <p>OPENING REGISTER…</p>
 </div>
 
-<div id="app" class="hidden">
-<header class="sticky top-0 z-40 glass border-b border-slate-800/50">
-<div class="max-w-[1600px] mx-auto px-4 py-3 flex items-center justify-between">
-<div class="flex items-center gap-3">
-<div class="w-9 h-9 rounded-lg bg-blue-600/20 flex items-center justify-center">
-<i class="fas fa-map-marked-alt text-blue-400 text-sm"></i>
-</div>
-<div>
-<h1 class="text-sm font-bold text-white leading-tight">Punjab GIS</h1>
-<p class="text-[10px] text-slate-500 uppercase tracking-wider">Lahore Division Survey Operations</p>
-</div>
-</div>
-<div class="flex items-center gap-3">
-<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-<span class="w-2 h-2 rounded-full bg-emerald-400 pulse"></span>
-<span class="text-[11px] font-medium text-emerald-400">Live</span>
-</div>
-<div class="text-right hidden sm:block">
-<p class="text-[10px] text-slate-500">Last Updated</p>
-<p class="text-xs font-medium text-slate-300" id="lastUpdated">--</p>
-</div>
-<button onclick="fetchData()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition" title="Refresh">
-<i class="fas fa-sync-alt text-xs text-slate-400"></i>
-</button>
-</div>
-</div>
-</header>
-
-<div id="debugPanel" class="max-w-[1600px] mx-auto px-4 pt-4 hidden">
-<div class="debug-panel rounded-xl p-4">
-<div class="flex items-center justify-between mb-2">
-<h3 class="text-sm font-bold text-red-400"><i class="fas fa-bug mr-2"></i>Data Diagnostics</h3>
-<button onclick="document.getElementById('debugPanel').classList.add('hidden')" class="text-xs text-slate-400 hover:text-white">Hide</button>
-</div>
-<div id="debugContent" class="text-xs text-slate-300 font-mono whitespace-pre-wrap"></div>
-</div>
+<div id="errorScreen">
+  <div class="error-box">
+    <h2>Register Could Not Be Opened</h2>
+    <p id="errorMessage">Something went wrong.</p>
+    <h3 style="font-family:var(--font-mono);font-size:11px;color:var(--paper-dim);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">To fix</h3>
+    <ol>
+      <li>Make sure <code>config.json</code> sits next to this HTML file</li>
+      <li>Open <code>config.json</code> and confirm the Apps Script URL is correct</li>
+      <li>Refresh this page</li>
+    </ol>
+    <button class="retry-btn" onclick="location.reload()">Retry</button>
+  </div>
 </div>
 
-<nav class="max-w-[1600px] mx-auto px-4 pt-4 pb-2">
-<div class="flex gap-1 p-1 rounded-xl bg-slate-900/50 border border-slate-800/50 w-fit">
-<button class="tab-btn active px-4 py-2 rounded-lg text-xs font-medium border border-transparent" data-tab="overview" onclick="switchTab('overview')">
-<i class="fas fa-chart-pie mr-1.5"></i>Overview
-</button>
-<button class="tab-btn px-4 py-2 rounded-lg text-xs font-medium border border-transparent text-slate-500" data-tab="issues" onclick="switchTab('issues')">
-<i class="fas fa-exclamation-triangle mr-1.5"></i>Issues <span id="issuesBadge" class="badge bg-red-500/20 text-red-400 ml-1 hidden">0</span>
-</button>
-<button class="tab-btn px-4 py-2 rounded-lg text-xs font-medium border border-transparent text-slate-500" data-tab="surveyors" onclick="switchTab('surveyors')">
-<i class="fas fa-users mr-1.5"></i>Surveyors
-</button>
-<button class="tab-btn px-4 py-2 rounded-lg text-xs font-medium border border-transparent text-slate-500" data-tab="raw" onclick="switchTab('raw')">
-<i class="fas fa-table mr-1.5"></i>Raw Data
-</button>
-</div>
-</nav>
+<div id="app">
+  <div class="wrap">
+    <header class="letterhead">
+      <div class="letterhead-row">
+        <div class="title-block">
+          <div class="eyebrow" id="fileRef">FILE REF — PULSE / LHR-DIV</div>
+          <h1 id="dashTitle">Field Survey Register</h1>
+          <p id="dashSub">Lahore Division · Punjab Land Records Authority</p>
+        </div>
+        <div class="file-meta">
+          <div><span class="live-dot"></span>LIVE<button class="refresh-btn" id="refreshBtn" onclick="fetchData()" title="Refresh">⟳</button></div>
+          <div class="rev">Last entry: <span id="lastUpdated">—</span></div>
+        </div>
+      </div>
+      <div class="debug-panel" id="debugPanel">
+        <h3>Diagnostics</h3>
+        <pre id="debugContent"></pre>
+      </div>
+    </header>
 
-<div id="tab-overview" class="tab-content max-w-[1600px] mx-auto px-4 pb-8 fade-in">
-<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-4">
-<div class="glass rounded-xl p-3 card-hover">
-<p class="kpi-label mb-1.5">Total PSIDs</p>
-<p class="kpi-value text-white" id="kpiTotal">0</p>
-<p class="text-[10px] text-slate-500 mt-1">All received</p>
-</div>
-<div class="glass rounded-xl p-3 card-hover">
-<p class="kpi-label mb-1.5 text-emerald-400">Surveyed</p>
-<p class="kpi-value text-emerald-400" id="kpiDone">0</p>
-<p class="text-[10px] text-slate-500 mt-1">Completed</p>
-</div>
-<div class="glass rounded-xl p-3 card-hover">
-<p class="kpi-label mb-1.5 text-amber-400">Pending</p>
-<p class="kpi-value text-amber-400" id="kpiPending">0</p>
-<p class="text-[10px] text-slate-500 mt-1">In backlog</p>
-</div>
-<div class="glass rounded-xl p-3 card-hover">
-<p class="kpi-label mb-1.5 text-blue-400">Progress</p>
-<p class="kpi-value text-blue-400" id="kpiProgress">0%</p>
-<p class="text-[10px] text-slate-500 mt-1">Completion rate</p>
-</div>
-<div class="glass rounded-xl p-3 card-hover">
-<p class="kpi-label mb-1.5 text-purple-400">Parcels</p>
-<p class="kpi-value text-purple-400" id="kpiParcels">0</p>
-<p class="text-[10px] text-slate-500 mt-1">Total mapped</p>
-</div>
-<div class="glass rounded-xl p-3 card-hover">
-<p class="kpi-label mb-1.5 text-cyan-400">Avg Days</p>
-<p class="kpi-value text-cyan-400" id="kpiAvgDays">0</p>
-<p class="text-[10px] text-slate-500 mt-1">To complete</p>
-</div>
-<div class="glass rounded-xl p-3 card-hover">
-<p class="kpi-label mb-1.5 text-red-400">Issue Rate</p>
-<p class="kpi-value text-red-400" id="kpiIssueRate">0%</p>
-<p class="text-[10px] text-slate-500 mt-1">With remarks</p>
-</div>
-</div>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
+      <button class="tab-btn" data-tab="districts" onclick="switchTab('districts')">Districts</button>
+      <button class="tab-btn" data-tab="surveyors" onclick="switchTab('surveyors')">Surveyors</button>
+      <button class="tab-btn" data-tab="issues" onclick="switchTab('issues')">Flagged Entries <span class="count" id="issuesBadge" style="display:none;">0</span></button>
+      <button class="tab-btn" data-tab="register" onclick="switchTab('register')">Full Register</button>
+    </nav>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4" id="districtCards"></div>
+    <!-- OVERVIEW -->
+    <div class="tab-content active" id="tab-overview">
+      <div class="ledger-strip" id="ledgerStrip">
+        <div class="ledger-cell"><div class="ledger-label">PSIDs Received</div><div class="ledger-value v-paper" id="kpiTotal">0</div><div class="ledger-sub">across 4 districts</div></div>
+        <div class="ledger-cell"><div class="ledger-label">Surveyed</div><div class="ledger-value v-green" id="kpiDone">0</div><div class="ledger-sub">marked done</div></div>
+        <div class="ledger-cell"><div class="ledger-label">Pending</div><div class="ledger-value v-brass" id="kpiPending">0</div><div class="ledger-sub">in backlog</div></div>
+        <div class="ledger-cell"><div class="ledger-label">Overdue</div><div class="ledger-value v-red" id="kpiOverdue">0</div><div class="ledger-sub">&gt;14 days open</div></div>
+        <div class="ledger-cell"><div class="ledger-label">Completion</div><div class="ledger-value v-brass" id="kpiProgress">0%</div><div class="ledger-sub">of total PSIDs</div></div>
+        <div class="ledger-cell"><div class="ledger-label">Parcels Mapped</div><div class="ledger-value v-steel" id="kpiParcels">0</div><div class="ledger-sub">total created</div></div>
+        <div class="ledger-cell"><div class="ledger-label">Avg. Turnaround</div><div class="ledger-value v-paper" id="kpiAvgDays">0</div><div class="ledger-sub">days, assign → done</div></div>
+      </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
-<div class="glass rounded-xl p-4">
-<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Survey Status</h3>
-<div class="chart-container"><canvas id="chartStatus"></canvas></div>
-</div>
-<div class="glass rounded-xl p-4">
-<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">DGPS vs Mobile by District</h3>
-<div class="chart-container"><canvas id="chartMethod"></canvas></div>
-</div>
-</div>
+      <div class="section-head"><h3>District Folios</h3><span class="hint">by district of record</span></div>
+      <div class="folio-grid" id="districtFolios"></div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-<div class="glass rounded-xl p-4">
-<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Top 5 Surveyors</h3>
-<div class="chart-container"><canvas id="chartSurveyors"></canvas></div>
-</div>
-<div class="glass rounded-xl p-4">
-<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Last 14 Days — Surveys Completed</h3>
-<div class="chart-container"><canvas id="chartTrend"></canvas></div>
-</div>
-</div>
-</div>
+      <div class="chart-grid">
+        <div class="chart-card"><div class="section-head"><h3>Survey Status</h3></div><div class="chart-box"><canvas id="chartStatus"></canvas></div></div>
+        <div class="chart-card"><div class="section-head"><h3>Method — DGPS vs Mobile</h3></div><div class="chart-box"><canvas id="chartMethod"></canvas></div></div>
+        <div class="chart-card"><div class="section-head"><h3>Top Surveyors</h3></div><div class="chart-box"><canvas id="chartSurveyors"></canvas></div></div>
+        <div class="chart-card"><div class="section-head"><h3>Completions — Last 14 Days</h3></div><div class="chart-box"><canvas id="chartTrend"></canvas></div></div>
+      </div>
+    </div>
 
-<div id="tab-issues" class="tab-content max-w-[1600px] mx-auto px-4 pb-8 hidden fade-in">
-<div class="glass rounded-xl p-4 mb-4">
-<div class="flex flex-wrap items-center justify-between gap-3">
-<div class="flex items-center gap-2">
-<button class="issue-filter active px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600/20 text-blue-400 border border-blue-500/30" data-filter="all" onclick="filterIssues('all')">All Remarks</button>
-<button class="issue-filter px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700" data-filter="calling" onclick="filterIssues('calling')">Calling Remarks</button>
-<button class="issue-filter px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700" data-filter="survey" onclick="filterIssues('survey')">Survey Remarks</button>
-</div>
-<div class="flex items-center gap-4 text-xs">
-<span class="text-slate-500">Total with remarks: <strong class="text-white" id="issuesTotalCount">0</strong></span>
-<span class="text-amber-500">Calling: <strong id="issuesCallingCount">0</strong></span>
-<span class="text-red-400">Survey: <strong id="issuesSurveyCount">0</strong></span>
-</div>
-</div>
-</div>
-<div class="glass rounded-xl p-4 mb-4">
-<input type="text" id="issuesSearch" placeholder="Search by PSID, Owner, District, or Remark text..." class="search-input w-full px-4 py-2.5 rounded-lg text-sm text-white placeholder-slate-500" oninput="searchIssues()">
-</div>
-<div class="glass rounded-xl overflow-hidden">
-<div class="table-container">
-<table class="w-full text-xs">
-<thead class="bg-slate-900/80 sticky top-0 z-10">
-<tr>
-<th class="text-left px-4 py-2.5 font-semibold text-slate-400">PSID</th>
-<th class="text-left px-4 py-2.5 font-semibold text-slate-400">District</th>
-<th class="text-left px-4 py-2.5 font-semibold text-slate-400">Surveyor</th>
-<th class="text-left px-4 py-2.5 font-semibold text-slate-400">Status</th>
-<th class="text-left px-4 py-2.5 font-semibold text-slate-400">Type</th>
-<th class="text-left px-4 py-2.5 font-semibold text-slate-400">Remarks</th>
-</tr>
-</thead>
-<tbody id="issuesTableBody" class="divide-y divide-slate-800/50"></tbody>
-</table>
-</div>
-<div id="issuesEmpty" class="hidden py-12 text-center text-slate-500 text-sm">
-<i class="fas fa-check-circle text-3xl text-emerald-500/30 mb-2"></i>
-<p>No remarks found for the selected filter.</p>
-</div>
-</div>
-</div>
+    <!-- DISTRICTS -->
+    <div class="tab-content" id="tab-districts">
+      <div class="section-head"><h3>District Breakdown</h3><span class="hint">assigned by source sheet, not free-text column</span></div>
+      <div class="reg-table-wrap">
+        <div class="reg-scroll">
+          <table>
+            <thead><tr>
+              <th>District</th><th>Total</th><th>Done</th><th>Pending</th><th>Overdue</th><th>Parcels</th><th>Completion</th>
+            </tr></thead>
+            <tbody id="districtTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
-<div id="tab-surveyors" class="tab-content max-w-[1600px] mx-auto px-4 pb-8 hidden fade-in">
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-<div class="lg:col-span-2 glass rounded-xl overflow-hidden">
-<div class="px-4 py-3 border-b border-slate-800/50 flex items-center justify-between">
-<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Surveyor Leaderboard</h3>
-<span class="text-[10px] text-slate-500">Sorted by completed surveys</span>
-</div>
-<div class="table-container" style="max-height:70vh;">
-<table class="w-full text-xs">
-<thead class="bg-slate-900/80 sticky top-0 z-10">
-<tr>
-<th class="text-left px-4 py-2.5 font-semibold text-slate-400 w-10">#</th>
-<th class="text-left px-4 py-2.5 font-semibold text-slate-400">Surveyor</th>
-<th class="text-center px-4 py-2.5 font-semibold text-slate-400">Done</th>
-<th class="text-center px-4 py-2.5 font-semibold text-slate-400">Pending</th>
-<th class="text-center px-4 py-2.5 font-semibold text-slate-400">Total</th>
-<th class="text-center px-4 py-2.5 font-semibold text-slate-400">Avg Parcels</th>
-<th class="text-center px-4 py-2.5 font-semibold text-slate-400">Avg Days</th>
-</tr>
-</thead>
-<tbody id="surveyorsTableBody" class="divide-y divide-slate-800/50"></tbody>
-</table>
-</div>
-</div>
-<div class="glass rounded-xl p-4">
-<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Surveyor Productivity</h3>
-<div class="chart-container" style="height:300px;"><canvas id="chartSurveyorBar"></canvas></div>
-</div>
-</div>
-</div>
+    <!-- SURVEYORS -->
+    <div class="tab-content" id="tab-surveyors">
+      <div class="surveyor-layout">
+        <div class="reg-table-wrap">
+          <div class="section-head" style="padding:12px 14px 0;"><h3>Surveyor Leaderboard</h3><span class="hint">by completed surveys</span></div>
+          <div class="reg-scroll" style="max-height:65vh;">
+            <table>
+              <thead><tr><th>#</th><th>Surveyor</th><th>Done</th><th>Pending</th><th>Total</th><th>Avg Parcels</th><th>Avg Days</th></tr></thead>
+              <tbody id="surveyorsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="chart-card"><div class="section-head"><h3>Productivity</h3></div><div class="chart-box" style="height:340px;"><canvas id="chartSurveyorBar"></canvas></div></div>
+      </div>
+    </div>
 
-<div id="tab-raw" class="tab-content max-w-[1600px] mx-auto px-4 pb-8 hidden fade-in">
-<div class="glass rounded-xl p-4 mb-4">
-<div class="flex flex-wrap items-center gap-3">
-<input type="text" id="rawSearch" placeholder="Search PSID or Owner Name..." class="search-input px-4 py-2 rounded-lg text-sm text-white placeholder-slate-500 flex-1 min-w-[200px]" oninput="filterRawData()">
-<select id="rawFilterDistrict" class="search-input px-3 py-2 rounded-lg text-sm text-white min-w-[140px]" onchange="filterRawData()"><option value="">All Districts</option></select>
-<select id="rawFilterStatus" class="search-input px-3 py-2 rounded-lg text-sm text-white min-w-[120px]" onchange="filterRawData()"><option value="">All Status</option><option value="Done">Done</option><option value="Pending">Pending</option></select>
-<select id="rawFilterSurveyor" class="search-input px-3 py-2 rounded-lg text-sm text-white min-w-[140px]" onchange="filterRawData()"><option value="">All Surveyors</option></select>
-<span class="text-xs text-slate-500 whitespace-nowrap">Showing <strong id="rawShowing" class="text-white">0</strong> of <strong id="rawTotal" class="text-white">0</strong></span>
-</div>
-</div>
-<div class="glass rounded-xl overflow-hidden">
-<div class="table-container">
-<table class="w-full text-[11px]">
-<thead class="bg-slate-900/80 sticky top-0 z-10">
-<tr>
-<th class="text-left px-3 py-2 font-semibold text-slate-400">PSID</th>
-<th class="text-left px-3 py-2 font-semibold text-slate-400">District</th>
-<th class="text-left px-3 py-2 font-semibold text-slate-400">Tehsil</th>
-<th class="text-left px-3 py-2 font-semibold text-slate-400">Mouza</th>
-<th class="text-left px-3 py-2 font-semibold text-slate-400">Khasra</th>
-<th class="text-left px-3 py-2 font-semibold text-slate-400">Owner</th>
-<th class="text-left px-3 py-2 font-semibold text-slate-400">Surveyor</th>
-<th class="text-center px-3 py-2 font-semibold text-slate-400">Status</th>
-<th class="text-center px-3 py-2 font-semibold text-slate-400">Parcels</th>
-<th class="text-center px-3 py-2 font-semibold text-slate-400">Method</th>
-<th class="text-left px-3 py-2 font-semibold text-slate-400">Survey Remarks</th>
-</tr>
-</thead>
-<tbody id="rawTableBody" class="divide-y divide-slate-800/50"></tbody>
-</table>
-</div>
-<div class="flex items-center justify-between px-4 py-3 border-t border-slate-800/50">
-<button onclick="changePage(-1)" class="page-btn bg-slate-800 hover:bg-slate-700 text-slate-300 transition"><i class="fas fa-chevron-left"></i></button>
-<div class="flex gap-1" id="rawPagination"></div>
-<button onclick="changePage(1)" class="page-btn bg-slate-800 hover:bg-slate-700 text-slate-300 transition"><i class="fas fa-chevron-right"></i></button>
-</div>
-</div>
-</div>
+    <!-- ISSUES -->
+    <div class="tab-content" id="tab-issues">
+      <div class="filter-bar">
+        <span class="chip active" data-filter="all" onclick="filterIssues('all')">All Remarks</span>
+        <span class="chip" data-filter="calling" onclick="filterIssues('calling')">Calling Remarks</span>
+        <span class="chip" data-filter="survey" onclick="filterIssues('survey')">Survey Remarks</span>
+        <span class="tally">Total: <b id="issuesTotalCount">0</b> &nbsp;·&nbsp; Calling: <span class="amber" id="issuesCallingCount">0</span> &nbsp;·&nbsp; Survey: <span class="red" id="issuesSurveyCount">0</span></span>
+      </div>
+      <div class="filter-bar">
+        <input type="text" class="ipt search" id="issuesSearch" placeholder="Search PSID, owner, district, or remark text…" oninput="renderIssues()">
+      </div>
+      <div class="reg-table-wrap">
+        <div class="reg-scroll">
+          <table>
+            <thead><tr><th>PSID</th><th>District</th><th>Surveyor</th><th>Status</th><th>Type</th><th>Remark</th></tr></thead>
+            <tbody id="issuesTableBody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state" id="issuesEmpty" style="display:none;">
+          <div class="mark">✓</div>
+          <p>No remarks found for this filter.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="tab-content" id="tab-register">
+      <div class="filter-bar">
+        <input type="text" class="ipt search" id="regSearch" placeholder="Search PSID or owner name…" oninput="filterRegister()">
+        <select class="ipt" id="regFilterDistrict" onchange="filterRegister()"><option value="">All Districts</option></select>
+        <select class="ipt" id="regFilterStatus" onchange="filterRegister()">
+          <option value="">All Status</option><option value="done">Done</option><option value="pending">Pending</option><option value="issue">Issue</option>
+        </select>
+        <select class="ipt" id="regFilterSurveyor" onchange="filterRegister()"><option value="">All Surveyors</option></select>
+        <span class="tally">Showing <b id="regShowing">0</b> of <b id="regTotal">0</b></span>
+      </div>
+      <div class="reg-table-wrap">
+        <div class="reg-scroll">
+          <table>
+            <thead><tr>
+              <th>PSID</th><th>District</th><th>Tehsil</th><th>Mouza</th><th>Khasra</th><th>Owner</th><th>Surveyor</th><th>Status</th><th>Parcels</th><th>Method</th><th>Days Open</th><th>Remarks</th>
+            </tr></thead>
+            <tbody id="regTableBody"></tbody>
+          </table>
+        </div>
+        <div class="pager" id="regPagination"></div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script>
-var appConfig=null,rawData=[],processedData=null,charts={},currentTab='overview',issuesFilter='all',rawPage=1,rawPerPage=50,filteredRawData=[];
+var appConfig=null, rawData=[], processed=null, charts={}, issuesFilter='all', regPage=1, regPerPage=50, filteredReg=[];
+var OVERDUE_DAYS=14;
 
-function safeStr(v){return String(v||'').trim();}
+function safeStr(v){return String(v==null?'':v).trim();}
 function safeLower(v){return safeStr(v).toLowerCase();}
 function safeNum(v){var n=parseFloat(v);return isNaN(n)?0:n;}
-function isDone(r){return safeLower(r.surveyStatus)==='done';}
-function isPending(r){return safeLower(r.surveyStatus)==='pending';}
+
+function getStatus(r){
+  var s=safeLower(r.surveyStatus);
+  if(s.indexOf('done')>=0) return 'done';
+  if(s.indexOf('issue')>=0) return 'issue';
+  return 'pending';
+}
+function daysBetween(a,b){
+  var d1=new Date(a), d2=new Date(b);
+  if(isNaN(d1.getTime())||isNaN(d2.getTime())) return null;
+  var d=Math.round((d2-d1)/86400000);
+  return (d>=0&&d<3000)?d:null;
+}
+function isOverdue(r){
+  if(getStatus(r)==='done') return false;
+  if(!r.dateOfAssign) return false;
+  var d=daysBetween(r.dateOfAssign,new Date());
+  return d!==null && d>OVERDUE_DAYS;
+}
+function daysOpenLabel(r){
+  var status=getStatus(r);
+  if(status==='done'&&r.dateOfAssign&&r.surveyCompletedDate){
+    var d=daysBetween(r.dateOfAssign,r.surveyCompletedDate);
+    return d!==null?(d+'d (closed)'):'—';
+  }
+  if(r.dateOfAssign){
+    var d=daysBetween(r.dateOfAssign,new Date());
+    return d!==null?(d+'d open'):'—';
+  }
+  return '—';
+}
+function statusStamp(r){
+  var s=getStatus(r);
+  if(s==='done') return '<span class="stamp stamp-done">Done</span>';
+  if(s==='issue') return '<span class="stamp stamp-issue">Issue</span>';
+  return '<span class="stamp stamp-pending">Pending</span>';
+}
+function esc(v){return safeStr(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 async function init(){
-try{
-var configUrl='config.json?v='+Date.now();
-var configRes=await fetch(configUrl);
-if(!configRes.ok) throw new Error('Config file not found. Make sure config.json is in the same folder as index.html');
-appConfig=await configRes.json();
-if(!appConfig.webAppUrl||appConfig.webAppUrl.indexOf('YOUR_')>=0) throw new Error('Apps Script URL not configured in config.json');
-await fetchData();
-document.getElementById('loadingScreen').classList.add('hidden');
-document.getElementById('app').classList.remove('hidden');
-}catch(err){
-console.error('Init error:',err);
-showError(err.message);
-}
-}
-
-function showError(msg){
-document.getElementById('loadingScreen').classList.add('hidden');
-document.getElementById('errorScreen').classList.remove('hidden');
-document.getElementById('errorMessage').textContent=msg;
+  try{
+    var cfgRes=await fetch('config.json?v='+Date.now());
+    if(!cfgRes.ok) throw new Error('config.json not found next to this file');
+    appConfig=await cfgRes.json();
+    if(!appConfig.webAppUrl||appConfig.webAppUrl.indexOf('YOUR_')>=0) throw new Error('Apps Script URL missing in config.json');
+    document.getElementById('dashTitle').textContent=appConfig.dashboardTitle||'Field Survey Register';
+    await fetchData();
+    document.getElementById('loadingScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+  }catch(err){
+    console.error(err);
+    document.getElementById('loadingScreen').style.display='none';
+    document.getElementById('errorScreen').style.display='flex';
+    document.getElementById('errorMessage').textContent=err.message;
+  }
 }
 
 async function fetchData(){
-var spinner=document.querySelector('.fa-sync-alt');
-if(spinner) spinner.classList.add('fa-spin');
-try{
-var res=await fetch(appConfig.webAppUrl+'?t='+Date.now(),{method:'GET',headers:{'Accept':'application/json'}});
-if(!res.ok) throw new Error('Apps Script returned status '+res.status);
-var json=await res.json();
-if(!json.success&&json.errors&&json.errors.length>0) console.warn('Apps Script warnings:',json.errors);
-rawData=Array.isArray(json.data)?json.data:[];
-if(rawData.length===0) throw new Error('No data received from Apps Script. Check Sheet IDs and make sure sheets are not empty.');
-document.getElementById('lastUpdated').textContent=new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
-processData();
-renderAll();
-}catch(err){
-console.error('Fetch error:',err);
-alert('Error loading data: '+err.message);
-}finally{
-if(spinner) spinner.classList.remove('fa-spin');
-}
-}
-
-function processData(){
-try{
-var data=rawData;
-var districts=['Lahore','Kasur','Sheikhupura','Nankana Sahib'];
-
-var actualDistricts={};
-for(var i=0;i<data.length;i++){
-var d=safeStr(data[i].district);
-actualDistricts[d]=(actualDistricts[d]||0)+1;
-}
-console.log('District values in data:',actualDistricts);
-
-var total=data.length;
-var done=0,pending=0;
-for(var i=0;i<data.length;i++){
-if(isDone(data[i])) done++;
-else if(isPending(data[i])) pending++;
-}
-var progress=total>0?Math.round((done/total)*100):0;
-
-var totalParcels=0;
-for(var i=0;i<data.length;i++){
-totalParcels+=safeNum(data[i].numberOfParcelsCreated);
+  var btn=document.getElementById('refreshBtn');
+  if(btn) btn.classList.add('spin');
+  try{
+    var res=await fetch(appConfig.webAppUrl+'?t='+Date.now(),{headers:{'Accept':'application/json'}});
+    if(!res.ok) throw new Error('Apps Script returned status '+res.status);
+    var json=await res.json();
+    rawData=Array.isArray(json.data)?json.data:[];
+    if(json.errors&&json.errors.length){
+      var dbg=document.getElementById('debugPanel');
+      dbg.style.display='block';
+      document.getElementById('debugContent').textContent=json.errors.join('\n');
+    }
+    if(rawData.length===0) throw new Error('No records received. Check the Sheet IDs in the Apps Script.');
+    document.getElementById('lastUpdated').textContent=new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    process();
+    renderAll();
+  }catch(err){
+    console.error(err);
+    alert('Error loading data: '+err.message);
+  }finally{
+    if(btn) btn.classList.remove('spin');
+  }
 }
 
-var totalDays=0,completedWithDates=0;
-for(var i=0;i<data.length;i++){
-var r=data[i];
-if(isDone(r)&&r.dateOfAssign&&r.surveyCompletedDate){
-var start=new Date(r.dateOfAssign),end=new Date(r.surveyCompletedDate);
-if(!isNaN(start.getTime())&&!isNaN(end.getTime())){
-var days=Math.ceil((end-start)/(1000*60*60*24));
-if(days>=0&&days<1000){totalDays+=days;completedWithDates++;}
-}
-}
-}
-var avgDays=completedWithDates>0?(totalDays/completedWithDates).toFixed(1):'0';
+function process(){
+  var data=rawData;
+  var districtOrder=(appConfig.districts&&appConfig.districts.length)?appConfig.districts:[];
+  var seen={};
+  for(var i=0;i<data.length;i++){var d=safeStr(data[i].district);if(d&&!seen[d]){seen[d]=true;}}
+  var districts=districtOrder.length?districtOrder:Object.keys(seen);
 
-var withIssues=0;
-for(var i=0;i<data.length;i++){
-if(safeStr(data[i].surveyRemarks)!=='') withIssues++;
-}
-var issueRate=total>0?Math.round((withIssues/total)*100):0;
+  var total=data.length, done=0, pending=0, issue=0, overdue=0, totalParcels=0, totalDays=0, closedWithDates=0;
+  for(var i=0;i<data.length;i++){
+    var r=data[i], st=getStatus(r);
+    if(st==='done') done++; else if(st==='issue') issue++; else pending++;
+    if(isOverdue(r)) overdue++;
+    totalParcels+=safeNum(r.numberOfParcelsCreated);
+    if(st==='done'&&r.dateOfAssign&&r.surveyCompletedDate){
+      var d=daysBetween(r.dateOfAssign,r.surveyCompletedDate);
+      if(d!==null){totalDays+=d;closedWithDates++;}
+    }
+  }
+  var progress=total>0?Math.round((done/total)*100):0;
+  var avgDays=closedWithDates>0?(totalDays/closedWithDates).toFixed(1):'0';
 
-var districtStats={};
-for(var di=0;di<districts.length;di++){
-var d=districts[di];
-var dKey=d.toLowerCase();
-var dData=[];
-for(var i=0;i<data.length;i++){
-var rd=safeLower(data[i].district);
-if(rd===dKey||rd.indexOf(dKey)>=0||dKey.indexOf(rd)>=0) dData.push(data[i]);
-}
-var dDone=0,dPending=0,dParcels=0;
-for(var i=0;i<dData.length;i++){
-if(isDone(dData[i])) dDone++;
-else if(isPending(dData[i])) dPending++;
-dParcels+=safeNum(dData[i].numberOfParcelsCreated);
-}
-districtStats[d]={
-total:dData.length,
-done:dDone,
-pending:dPending,
-progress:dData.length>0?Math.round((dDone/dData.length)*100):0,
-parcels:dParcels
-};
-}
+  var districtStats={};
+  for(var di=0;di<districts.length;di++){
+    var name=districts[di];
+    var rows=data.filter(function(r){return safeStr(r.district)===name;});
+    var dDone=rows.filter(function(r){return getStatus(r)==='done';}).length;
+    var dPending=rows.length-dDone;
+    var dOverdue=rows.filter(isOverdue).length;
+    var dParcels=rows.reduce(function(s,r){return s+safeNum(r.numberOfParcelsCreated);},0);
+    var dgps=rows.filter(function(r){return safeLower(r.surveyedByDgpsOrMobile).indexOf('dgps')>=0;}).length;
+    var mobile=rows.filter(function(r){return safeLower(r.surveyedByDgpsOrMobile).indexOf('mobile')>=0;}).length;
+    districtStats[name]={total:rows.length,done:dDone,pending:dPending,overdue:dOverdue,parcels:dParcels,dgps:dgps,mobile:mobile,
+      pct:rows.length>0?Math.round((dDone/rows.length)*100):0};
+  }
 
-var methodStats={};
-for(var di=0;di<districts.length;di++){
-var d=districts[di];
-var dKey=d.toLowerCase();
-var dData=[];
-for(var i=0;i<data.length;i++){
-var rd=safeLower(data[i].district);
-if(rd===dKey||rd.indexOf(dKey)>=0||dKey.indexOf(rd)>=0) dData.push(data[i]);
-}
-var dgps=0,mobile=0;
-for(var i=0;i<dData.length;i++){
-var m=safeLower(dData[i].surveyedByDgpsOrMobile);
-if(m.indexOf('dgps')>=0) dgps++;
-if(m.indexOf('mobile')>=0) mobile++;
-}
-methodStats[d]={dgps:dgps,mobile:mobile};
-}
+  var surveyorMap={};
+  for(var i=0;i<data.length;i++){
+    var r=data[i], name=safeStr(r.surveyorName);
+    if(!name) continue;
+    if(!surveyorMap[name]) surveyorMap[name]={name:name,done:0,pending:0,total:0,parcels:0,days:0,daysN:0};
+    var s=surveyorMap[name];
+    s.total++;
+    if(getStatus(r)==='done') s.done++; else s.pending++;
+    s.parcels+=safeNum(r.numberOfParcelsCreated);
+    if(getStatus(r)==='done'&&r.dateOfAssign&&r.surveyCompletedDate){
+      var d=daysBetween(r.dateOfAssign,r.surveyCompletedDate);
+      if(d!==null){s.days+=d;s.daysN++;}
+    }
+  }
+  var surveyorList=Object.keys(surveyorMap).map(function(k){
+    var s=surveyorMap[k];
+    return {name:s.name,done:s.done,pending:s.pending,total:s.total,
+      avgParcels:s.done>0?(s.parcels/s.total).toFixed(1):'0',
+      avgDays:s.daysN>0?(s.days/s.daysN).toFixed(1):'—'};
+  }).sort(function(a,b){return b.done-a.done;});
 
-var surveyorMap={};
-for(var i=0;i<data.length;i++){
-var r=data[i];
-var name=safeStr(r.surveyorName);
-if(!name||name.toLowerCase()==='unknown') continue;
-if(!surveyorMap[name]) surveyorMap[name]={done:0,pending:0,total:0,parcels:0,days:0,count:0};
-surveyorMap[name].total++;
-if(isDone(r)){
-surveyorMap[name].done++;
-surveyorMap[name].parcels+=safeNum(r.numberOfParcelsCreated);
-if(r.dateOfAssign&&r.surveyCompletedDate){
-var start=new Date(r.dateOfAssign),end=new Date(r.surveyCompletedDate);
-if(!isNaN(start.getTime())&&!isNaN(end.getTime())){
-var days=Math.ceil((end-start)/(1000*60*60*24));
-if(days>=0&&days<1000){surveyorMap[name].days+=days;surveyorMap[name].count++;}
-}
-}
-}else{
-surveyorMap[name].pending++;
-}
-}
+  var issuesRows=data.filter(function(r){return safeStr(r.surveyRemarks)!==''||safeStr(r.callingRemarks)!=='';})
+    .map(function(r){
+      var hasSurvey=safeStr(r.surveyRemarks)!=='';
+      return {psid:r.psid,district:r.district,surveyorName:r.surveyorName,status:getStatus(r),
+        type:hasSurvey?'Survey':'Calling', remark:hasSurvey?r.surveyRemarks:r.callingRemarks};
+    });
 
-var surveyorList=[];
-var keys=Object.keys(surveyorMap);
-for(var i=0;i<keys.length;i++){
-var name=keys[i];
-var s=surveyorMap[name];
-surveyorList.push({
-name:name,
-done:s.done,
-pending:s.pending,
-total:s.total,
-parcels:s.parcels,
-days:s.days,
-count:s.count,
-avgParcels:s.done>0?(s.parcels/s.done).toFixed(1):'0',
-avgDays:s.count>0?(s.days/s.count).toFixed(1):'0'
-});
-}
-surveyorList.sort(function(a,b){return b.done-a.done;});
+  var trend=[];
+  var today=new Date();
+  for(var k=13;k>=0;k--){
+    var day=new Date(today); day.setDate(today.getDate()-k);
+    var key=day.toISOString().split('T')[0];
+    var count=data.filter(function(r){return safeStr(r.surveyCompletedDate)===key;}).length;
+    trend.push({label:(day.getMonth()+1)+'/'+day.getDate(),count:count});
+  }
 
-var today=new Date();
-var trendMap={};
-for(var i=13;i>=0;i--){
-var d=new Date(today);
-d.setDate(d.getDate()-i);
-trendMap[d.toISOString().split('T')[0]]=0;
-}
-for(var i=0;i<data.length;i++){
-var r=data[i];
-if(isDone(r)&&r.surveyCompletedDate){
-var dk=String(r.surveyCompletedDate).split('T')[0];
-if(trendMap[dk]!==undefined) trendMap[dk]++;
-}
-}
-var trendLabels=[];
-var trendKeys=Object.keys(trendMap);
-for(var i=0;i<trendKeys.length;i++){
-var date=new Date(trendKeys[i]);
-trendLabels.push(date.toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
-}
-var trendValues=Object.values(trendMap);
-
-var issuesData=[];
-for(var i=0;i<data.length;i++){
-var r=data[i];
-if(safeStr(r.callingRemarks)!==''||safeStr(r.surveyRemarks)!==''){
-issuesData.push({
-...r,
-hasCalling:safeStr(r.callingRemarks)!=='',
-hasSurvey:safeStr(r.surveyRemarks)!==''
-});
-}
-}
-
-var issuesCalling=0,issuesSurvey=0;
-for(var i=0;i<issuesData.length;i++){
-if(issuesData[i].hasCalling) issuesCalling++;
-if(issuesData[i].hasSurvey) issuesSurvey++;
-}
-
-processedData={
-total:total,done:done,pending:pending,progress:progress,
-totalParcels:totalParcels,avgDays:avgDays,issueRate:issueRate,
-districtStats:districtStats,methodStats:methodStats,
-surveyorList:surveyorList,trendLabels:trendLabels,trendValues:trendValues,
-issuesData:issuesData,issuesCalling:issuesCalling,issuesSurvey:issuesSurvey
-};
-
-var districtTotalSum=0;
-var dsKeys=Object.keys(districtStats);
-for(var i=0;i<dsKeys.length;i++){
-districtTotalSum+=districtStats[dsKeys[i]].total;
-}
-if(districtTotalSum<total*0.5){
-var panel=document.getElementById('debugPanel');
-var content=document.getElementById('debugContent');
-panel.classList.remove('hidden');
-content.textContent='WARNING: District names in your data do not match expected names.\n\n'+
-'Expected: Lahore, Kasur, Sheikhupura, Nankana Sahib\n'+
-'Found in data: '+JSON.stringify(actualDistricts,null,2)+'\n\n'+
-'Total records: '+total+'\n'+
-'Matched to districts: '+districtTotalSum+'\n\n'+
-'FIX: Make sure your Google Sheet "District" column contains exact names.\n'+
-'Or tell me what district names you actually use and I will update the code.';
-}
-}catch(err){
-console.error('processData error:',err);
-processedData={total:0,done:0,pending:0,progress:0,totalParcels:0,avgDays:'0',issueRate:0,districtStats:{},methodStats:{},surveyorList:[],trendLabels:[],trendValues:[],issuesData:[],issuesCalling:0,issuesSurvey:0};
-}
+  processed={total:total,done:done,pending:pending,issue:issue,overdue:overdue,progress:progress,
+    totalParcels:totalParcels,avgDays:avgDays,districts:districts,districtStats:districtStats,
+    surveyorList:surveyorList,issuesRows:issuesRows,trend:trend};
 }
 
 function renderAll(){
-if(!processedData) return;
-renderKPIs();
-renderDistrictCards();
-renderCharts();
-renderIssues();
-renderSurveyors();
-populateRawFilters();
-filterRawData();
-updateIssuesBadge();
+  renderKpis();
+  renderFolios();
+  renderDistrictTable();
+  renderCharts();
+  renderSurveyors();
+  renderIssues();
+  populateRegisterFilters();
+  filterRegister();
 }
 
-function renderKPIs(){
-if(!processedData) return;
-var d=processedData;
-document.getElementById('kpiTotal').textContent=d.total.toLocaleString();
-document.getElementById('kpiDone').textContent=d.done.toLocaleString();
-document.getElementById('kpiPending').textContent=d.pending.toLocaleString();
-document.getElementById('kpiProgress').textContent=d.progress+'%';
-document.getElementById('kpiParcels').textContent=Math.round(d.totalParcels).toLocaleString();
-document.getElementById('kpiAvgDays').textContent=d.avgDays;
-document.getElementById('kpiIssueRate').textContent=d.issueRate+'%';
+function renderKpis(){
+  var p=processed;
+  document.getElementById('kpiTotal').textContent=p.total;
+  document.getElementById('kpiDone').textContent=p.done;
+  document.getElementById('kpiPending').textContent=p.pending+p.issue;
+  document.getElementById('kpiOverdue').textContent=p.overdue;
+  document.getElementById('kpiProgress').textContent=p.progress+'%';
+  document.getElementById('kpiParcels').textContent=p.totalParcels;
+  document.getElementById('kpiAvgDays').textContent=p.avgDays;
 }
 
-function renderDistrictCards(){
-var container=document.getElementById('districtCards');
-if(!container||!processedData||!processedData.districtStats){
-if(container) container.innerHTML='<div class="col-span-4 text-center text-slate-500 py-8">No district data available</div>';
-return;
+function renderFolios(){
+  var el=document.getElementById('districtFolios');
+  var html='';
+  for(var i=0;i<processed.districts.length;i++){
+    var name=processed.districts[i], s=processed.districtStats[name];
+    if(!s) continue;
+    html+='<div class="folio"><div class="folio-name">'+esc(name)+'</div>'+
+      '<div class="folio-row"><span>Total</span><b>'+s.total+'</b></div>'+
+      '<div class="folio-row"><span>Done</span><b>'+s.done+'</b></div>'+
+      '<div class="folio-row"><span>Pending</span><b>'+s.pending+'</b></div>'+
+      '<div class="folio-row"><span>Overdue</span><b style="color:var(--red)">'+s.overdue+'</b></div>'+
+      '<div class="folio-bar"><div class="folio-fill" style="width:'+s.pct+'%"></div></div>'+
+      '<div class="folio-pct">'+s.pct+'% complete</div></div>';
+  }
+  el.innerHTML=html||'<p style="color:var(--muted);font-size:12px;">No district data found.</p>';
 }
-var districts=['Lahore','Kasur','Sheikhupura','Nankana Sahib'];
-var colors={'Lahore':'from-blue-500/20 to-blue-600/5','Kasur':'from-emerald-500/20 to-emerald-600/5','Sheikhupura':'from-purple-500/20 to-purple-600/5','Nankana Sahib':'from-amber-500/20 to-amber-600/5'};
-var html='';
-for(var i=0;i<districts.length;i++){
-var d=districts[i];
-var s=processedData.districtStats[d];
-if(!s) continue;
-html+='<div class="glass rounded-xl p-4 card-hover district-card bg-gradient-to-br '+colors[d]+'">'+
-'<div class="flex items-center justify-between mb-3"><h3 class="text-sm font-bold text-white">'+d+'</h3><span class="badge bg-slate-700 text-slate-300">'+s.total+' PSIDs</span></div>'+
-'<div class="grid grid-cols-3 gap-2 mb-3">'+
-'<div class="text-center"><p class="text-lg font-bold text-emerald-400">'+s.done+'</p><p class="text-[10px] text-slate-500">Done</p></div>'+
-'<div class="text-center"><p class="text-lg font-bold text-amber-400">'+s.pending+'</p><p class="text-[10px] text-slate-500">Pending</p></div>'+
-'<div class="text-center"><p class="text-lg font-bold text-purple-400">'+Math.round(s.parcels)+'</p><p class="text-[10px] text-slate-500">Parcels</p></div>'+
-'</div>'+
-'<div class="flex items-center gap-2"><div class="progress-bar flex-1"><div class="progress-fill bg-blue-500" style="width:'+s.progress+'%"></div></div><span class="text-xs font-bold text-blue-400 w-8 text-right">'+s.progress+'%</span></div>'+
-'</div>';
+
+function renderDistrictTable(){
+  var tbody=document.getElementById('districtTableBody');
+  var html='';
+  for(var i=0;i<processed.districts.length;i++){
+    var name=processed.districts[i], s=processed.districtStats[name];
+    if(!s) continue;
+    html+='<tr><td class="mono">'+esc(name)+'</td><td>'+s.total+'</td><td style="color:var(--green)">'+s.done+'</td><td style="color:var(--brass)">'+s.pending+'</td><td style="color:var(--red)">'+s.overdue+'</td><td>'+s.parcels+'</td><td>'+s.pct+'%</td></tr>';
+  }
+  tbody.innerHTML=html;
 }
-container.innerHTML=html;
-}
+
+function chartTextColor(){return getComputedStyle(document.body).getPropertyValue('--muted').trim()||'#8B9280';}
 
 function renderCharts(){
-if(!processedData) return;
-var d=processedData;
-var districts=['Lahore','Kasur','Sheikhupura','Nankana Sahib'];
+  var p=processed;
+  var muted='#8B9280', line='rgba(158,164,138,0.12)';
 
-var chartKeys=Object.keys(charts);
-for(var i=0;i<chartKeys.length;i++){
-var c=charts[chartKeys[i]];
-if(c) c.destroy();
+  if(charts.status) charts.status.destroy();
+  charts.status=new Chart(document.getElementById('chartStatus'),{
+    type:'doughnut',
+    data:{labels:['Done','Pending','Issue'],datasets:[{data:[p.done,p.pending,p.issue],backgroundColor:['#6E9C63','#C9A24B','#C1594A'],borderColor:'#191D14',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{color:muted,font:{size:11},boxWidth:10,padding:14}}}}
+  });
+
+  var dLabels=p.districts, dgps=[], mobile=[];
+  for(var i=0;i<dLabels.length;i++){
+    var s=p.districtStats[dLabels[i]]||{dgps:0,mobile:0};
+    dgps.push(s.dgps); mobile.push(s.mobile);
+  }
+  if(charts.method) charts.method.destroy();
+  charts.method=new Chart(document.getElementById('chartMethod'),{
+    type:'bar',
+    data:{labels:dLabels,datasets:[
+      {label:'DGPS',data:dgps,backgroundColor:'#7FA0B3',borderRadius:2},
+      {label:'Mobile',data:mobile,backgroundColor:'#C9A24B',borderRadius:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:muted,font:{size:11}}}},
+      scales:{x:{stacked:true,ticks:{color:muted,font:{size:10}},grid:{display:false}},y:{stacked:true,ticks:{color:muted,font:{size:10}},grid:{color:line}}}}
+  });
+
+  var top5=p.surveyorList.slice(0,5);
+  if(charts.surveyors) charts.surveyors.destroy();
+  charts.surveyors=new Chart(document.getElementById('chartSurveyors'),{
+    type:'bar',
+    data:{labels:top5.map(function(s){return s.name.length>12?s.name.slice(0,12)+'…':s.name;}),
+      datasets:[{label:'Done',data:top5.map(function(s){return s.done;}),backgroundColor:'#6E9C63',borderRadius:2}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:muted,font:{size:10}},grid:{color:line}},y:{ticks:{color:muted,font:{size:10}},grid:{display:false}}}}
+  });
+
+  if(charts.trend) charts.trend.destroy();
+  charts.trend=new Chart(document.getElementById('chartTrend'),{
+    type:'line',
+    data:{labels:p.trend.map(function(t){return t.label;}),datasets:[{label:'Completed',data:p.trend.map(function(t){return t.count;}),
+      borderColor:'#6E9C63',backgroundColor:'rgba(110,156,99,0.12)',fill:true,tension:0.3,pointRadius:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:muted,font:{size:9}},grid:{display:false}},y:{ticks:{color:muted,font:{size:10}},grid:{color:line},beginAtZero:true}}}
+  });
 }
 
-var commonOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}};
-
-charts.status=new Chart(document.getElementById('chartStatus'),{
-type:'doughnut',
-data:{labels:['Done','Pending'],datasets:[{data:[d.done,d.pending],backgroundColor:['#10b981','#f59e0b'],borderWidth:0,hoverOffset:4}]},
-options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#94a3b8',padding:15,font:{size:11}}}}}
-});
-
-var dgpsData=[],mobileData=[];
-for(var i=0;i<districts.length;i++){
-var ms=processedData.methodStats[districts[i]];
-dgpsData.push(ms?ms.dgps:0);
-mobileData.push(ms?ms.mobile:0);
-}
-charts.method=new Chart(document.getElementById('chartMethod'),{
-type:'bar',
-data:{labels:districts,datasets:[{label:'DGPS',data:dgpsData,backgroundColor:'#3b82f6',borderRadius:4},{label:'Mobile',data:mobileData,backgroundColor:'#f59e0b',borderRadius:4}]},
-options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},scales:{x:{stacked:true,ticks:{color:'#64748b',font:{size:10}},grid:{display:false}},y:{stacked:true,ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'}}}}
-});
-
-var top5=[];
-for(var i=0;i<Math.min(5,d.surveyorList.length);i++) top5.push(d.surveyorList[i]);
-var sLabels=[],sData=[];
-for(var i=0;i<top5.length;i++){
-sLabels.push(top5[i].name.length>12?top5[i].name.substring(0,12)+'...':top5[i].name);
-sData.push(top5[i].done);
-}
-charts.surveyors=new Chart(document.getElementById('chartSurveyors'),{
-type:'bar',
-data:{labels:sLabels,datasets:[{label:'Surveys Completed',data:sData,backgroundColor:'#10b981',borderRadius:4}]},
-options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'}},y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{display:false}}}}
-});
-
-charts.trend=new Chart(document.getElementById('chartTrend'),{
-type:'line',
-data:{labels:d.trendLabels,datasets:[{label:'Completed',data:d.trendValues,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.1)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:'#3b82f6'}]},
-options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},scales:{x:{ticks:{color:'#64748b',font:{size:9},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'},beginAtZero:true}}}
-});
+function renderSurveyors(){
+  var tbody=document.getElementById('surveyorsTableBody');
+  var list=processed.surveyorList;
+  var html='';
+  for(var i=0;i<list.length;i++){
+    var s=list[i];
+    html+='<tr><td class="rank">'+(i+1)+'</td><td class="mono">'+esc(s.name)+'</td><td style="color:var(--green)">'+s.done+'</td><td style="color:var(--brass)">'+s.pending+'</td><td>'+s.total+'</td><td>'+s.avgParcels+'</td><td>'+s.avgDays+'</td></tr>';
+  }
+  tbody.innerHTML=html;
 }
 
-function updateIssuesBadge(){
-var badge=document.getElementById('issuesBadge');
-if(!processedData) return;
-var count=processedData.issuesData.length;
-if(count>0){badge.textContent=count;badge.classList.remove('hidden');}
-document.getElementById('issuesTotalCount').textContent=count;
-document.getElementById('issuesCallingCount').textContent=processedData.issuesCalling;
-document.getElementById('issuesSurveyCount').textContent=processedData.issuesSurvey;
-}
-
-function filterIssues(type){
-issuesFilter=type;
-var btns=document.querySelectorAll('.issue-filter');
-for(var i=0;i<btns.length;i++){
-var btn=btns[i];
-if(btn.dataset.filter===type){
-btn.classList.add('bg-blue-600/20','text-blue-400','border-blue-500/30');
-btn.classList.remove('bg-slate-800','text-slate-400','border-slate-700');
-}else{
-btn.classList.remove('bg-blue-600/20','text-blue-400','border-blue-500/30');
-btn.classList.add('bg-slate-800','text-slate-400','border-slate-700');
-}
-}
-renderIssues();
+function filterIssues(f){
+  issuesFilter=f;
+  document.querySelectorAll('#tab-issues .chip').forEach(function(c){c.classList.toggle('active',c.dataset.filter===f);});
+  renderIssues();
 }
 
 function renderIssues(){
-if(!processedData) return;
-var search=(document.getElementById('issuesSearch').value||'').toLowerCase();
-var filtered=processedData.issuesData;
-if(issuesFilter==='calling'){
-var temp=[];
-for(var i=0;i<filtered.length;i++) if(filtered[i].hasCalling) temp.push(filtered[i]);
-filtered=temp;
-}else if(issuesFilter==='survey'){
-var temp=[];
-for(var i=0;i<filtered.length;i++) if(filtered[i].hasSurvey) temp.push(filtered[i]);
-filtered=temp;
-}
-if(search){
-var temp=[];
-for(var i=0;i<filtered.length;i++){
-var r=filtered[i];
-if(safeLower(r.psid).indexOf(search)>=0||safeLower(r.ownerName).indexOf(search)>=0||safeLower(r.district).indexOf(search)>=0||safeLower(r.callingRemarks).indexOf(search)>=0||safeLower(r.surveyRemarks).indexOf(search)>=0){
-temp.push(r);
-}
-}
-filtered=temp;
+  var search=safeLower(document.getElementById('issuesSearch').value);
+  var rows=processed.issuesRows.filter(function(r){
+    if(issuesFilter!=='all'&&r.type.toLowerCase()!==issuesFilter) return false;
+    if(!search) return true;
+    return safeLower(r.psid).indexOf(search)>=0||safeLower(r.district).indexOf(search)>=0||safeLower(r.remark).indexOf(search)>=0;
+  });
+  var callingCount=processed.issuesRows.filter(function(r){return r.type==='Calling';}).length;
+  var surveyCount=processed.issuesRows.filter(function(r){return r.type==='Survey';}).length;
+  document.getElementById('issuesTotalCount').textContent=processed.issuesRows.length;
+  document.getElementById('issuesCallingCount').textContent=callingCount;
+  document.getElementById('issuesSurveyCount').textContent=surveyCount;
+  var badge=document.getElementById('issuesBadge');
+  if(processed.issuesRows.length>0){badge.style.display='inline-block';badge.textContent=processed.issuesRows.length;}
+
+  var tbody=document.getElementById('issuesTableBody');
+  var empty=document.getElementById('issuesEmpty');
+  if(rows.length===0){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  var html='';
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i];
+    var stamp=r.status==='done'?'<span class="stamp stamp-done">Done</span>':r.status==='issue'?'<span class="stamp stamp-issue">Issue</span>':'<span class="stamp stamp-pending">Pending</span>';
+    html+='<tr><td class="mono">'+esc(r.psid||'—')+'</td><td>'+esc(r.district||'—')+'</td><td>'+esc(r.surveyorName||'—')+'</td><td>'+stamp+'</td><td>'+r.type+'</td><td class="italic-remark">'+esc(r.remark||'—')+'</td></tr>';
+  }
+  tbody.innerHTML=html;
 }
 
-var tbody=document.getElementById('issuesTableBody'),empty=document.getElementById('issuesEmpty');
-if(filtered.length===0){tbody.innerHTML='';empty.classList.remove('hidden');return;}
-empty.classList.add('hidden');
-
-var html='';
-for(var i=0;i<filtered.length;i++){
-var r=filtered[i];
-var status=isDone(r)?'<span class="badge status-done">Done</span>':'<span class="badge status-pending">Pending</span>';
-var type='',remark='',typeClass='';
-if(issuesFilter==='all'){
-if(r.hasSurvey){type='Survey';remark=r.surveyRemarks;typeClass='issue-type-survey';}
-else{type='Calling';remark=r.callingRemarks;typeClass='issue-type-calling';}
-}else if(issuesFilter==='calling'){type='Calling';remark=r.callingRemarks;typeClass='issue-type-calling';}
-else{type='Survey';remark=r.surveyRemarks;typeClass='issue-type-survey';}
-html+='<tr class="hover:bg-slate-800/30 transition '+typeClass+'"><td class="px-4 py-2.5 font-mono text-slate-300">'+(r.psid||'-')+'</td><td class="px-4 py-2.5 text-slate-400">'+(r.district||'-')+'</td><td class="px-4 py-2.5 text-slate-400">'+(r.surveyorName||'-')+'</td><td class="px-4 py-2.5">'+status+'</td><td class="px-4 py-2.5"><span class="badge '+(type==='Survey'?'status-issue':'status-pending')+'">'+type+'</span></td><td class="px-4 py-2.5 remark-text max-w-md">'+(remark||'-')+'</td></tr>';
-}
-tbody.innerHTML=html;
+function populateRegisterFilters(){
+  var districtSet={}, surveyorSet={};
+  for(var i=0;i<rawData.length;i++){
+    if(rawData[i].district) districtSet[rawData[i].district]=true;
+    if(rawData[i].surveyorName) surveyorSet[rawData[i].surveyorName]=true;
+  }
+  var dSel=document.getElementById('regFilterDistrict');
+  dSel.innerHTML='<option value="">All Districts</option>'+Object.keys(districtSet).sort().map(function(d){return '<option value="'+esc(d)+'">'+esc(d)+'</option>';}).join('');
+  var sSel=document.getElementById('regFilterSurveyor');
+  sSel.innerHTML='<option value="">All Surveyors</option>'+Object.keys(surveyorSet).sort().map(function(s){return '<option value="'+esc(s)+'">'+esc(s)+'</option>';}).join('');
 }
 
-function searchIssues(){renderIssues();}
-
-function renderSurveyors(){
-if(!processedData) return;
-var tbody=document.getElementById('surveyorsTableBody');
-var list=processedData.surveyorList;
-var html='';
-for(var i=0;i<list.length;i++){
-var s=list[i];
-html+='<tr class="hover:bg-slate-800/30 transition"><td class="px-4 py-2.5 text-slate-500 font-mono">'+(i+1)+'</td><td class="px-4 py-2.5 font-medium text-white">'+s.name+'</td><td class="px-4 py-2.5 text-center text-emerald-400 font-bold">'+s.done+'</td><td class="px-4 py-2.5 text-center text-amber-400">'+s.pending+'</td><td class="px-4 py-2.5 text-center text-slate-300">'+s.total+'</td><td class="px-4 py-2.5 text-center text-purple-400">'+s.avgParcels+'</td><td class="px-4 py-2.5 text-center text-cyan-400">'+s.avgDays+'</td></tr>';
-}
-tbody.innerHTML=html;
-
-if(charts.surveyorBar) charts.surveyorBar.destroy();
-var top10=[];
-for(var i=0;i<Math.min(10,list.length);i++) top10.push(list[i]);
-var sLabels=[],sDone=[],sPending=[];
-for(var i=0;i<top10.length;i++){
-sLabels.push(top10[i].name.length>10?top10[i].name.substring(0,10)+'...':top10[i].name);
-sDone.push(top10[i].done);
-sPending.push(top10[i].pending);
-}
-charts.surveyorBar=new Chart(document.getElementById('chartSurveyorBar'),{
-type:'bar',
-data:{labels:sLabels,datasets:[{label:'Done',data:sDone,backgroundColor:'#10b981',borderRadius:3},{label:'Pending',data:sPending,backgroundColor:'#f59e0b',borderRadius:3}]},
-options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},scales:{x:{ticks:{color:'#64748b',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(148,163,184,0.06)'},beginAtZero:true}}}
-});
+function filterRegister(){
+  var search=safeLower(document.getElementById('regSearch').value);
+  var district=document.getElementById('regFilterDistrict').value;
+  var status=document.getElementById('regFilterStatus').value;
+  var surveyor=document.getElementById('regFilterSurveyor').value;
+  filteredReg=rawData.filter(function(r){
+    var ms=!search||safeLower(r.psid).indexOf(search)>=0||safeLower(r.ownerName).indexOf(search)>=0;
+    var md=!district||safeStr(r.district)===district;
+    var mst=!status||getStatus(r)===status;
+    var msv=!surveyor||safeStr(r.surveyorName)===surveyor;
+    return ms&&md&&mst&&msv;
+  });
+  regPage=1;
+  renderRegister();
 }
 
-function populateRawFilters(){
-var districtSet={},surveyorSet={};
-for(var i=0;i<rawData.length;i++){
-if(rawData[i].district) districtSet[rawData[i].district]=true;
-if(rawData[i].surveyorName) surveyorSet[rawData[i].surveyorName]=true;
-}
-var districts=Object.keys(districtSet).sort();
-var surveyors=Object.keys(surveyorSet).sort();
-var dSelect=document.getElementById('rawFilterDistrict');
-dSelect.innerHTML='<option value="">All Districts</option>';
-for(var i=0;i<districts.length;i++) dSelect.innerHTML+='<option value="'+districts[i]+'">'+districts[i]+'</option>';
-var sSelect=document.getElementById('rawFilterSurveyor');
-sSelect.innerHTML='<option value="">All Surveyors</option>';
-for(var i=0;i<surveyors.length;i++) sSelect.innerHTML+='<option value="'+surveyors[i]+'">'+surveyors[i]+'</option>';
-}
+function renderRegister(){
+  var start=(regPage-1)*regPerPage, end=start+regPerPage;
+  var pageData=filteredReg.slice(start,end);
+  var totalPages=Math.ceil(filteredReg.length/regPerPage)||1;
+  document.getElementById('regShowing').textContent=filteredReg.length;
+  document.getElementById('regTotal').textContent=rawData.length;
+  var tbody=document.getElementById('regTableBody');
+  var html='';
+  for(var i=0;i<pageData.length;i++){
+    var r=pageData[i];
+    var overdueTag=isOverdue(r)?' <span class="overdue-flag">⚑ overdue</span>':'';
+    html+='<tr><td class="mono">'+esc(r.psid||'—')+'</td><td>'+esc(r.district||'—')+'</td><td>'+esc(r.tehsil||'—')+'</td><td>'+esc(r.mouza||'—')+'</td><td class="mono">'+esc(r.khasraNumber||'—')+'</td><td>'+esc(r.ownerName||'—')+'</td><td>'+esc(r.surveyorName||'—')+'</td><td>'+statusStamp(r)+'</td><td>'+(r.numberOfParcelsCreated||'0')+'</td><td>'+esc(r.surveyedByDgpsOrMobile||'—')+'</td><td>'+daysOpenLabel(r)+overdueTag+'</td><td class="italic-remark" title="'+esc(r.surveyRemarks||'')+'">'+esc(r.surveyRemarks||'—')+'</td></tr>';
+  }
+  tbody.innerHTML=html;
 
-function filterRawData(){
-var search=(document.getElementById('rawSearch').value||'').toLowerCase();
-var district=document.getElementById('rawFilterDistrict').value;
-var status=document.getElementById('rawFilterStatus').value;
-var surveyor=document.getElementById('rawFilterSurveyor').value;
-filteredRawData=[];
-for(var i=0;i<rawData.length;i++){
-var r=rawData[i];
-var ms=!search||safeLower(r.psid).indexOf(search)>=0||safeLower(r.ownerName).indexOf(search)>=0;
-var md=!district||safeStr(r.district)===district;
-var ms2=!status||safeLower(r.surveyStatus)===status.toLowerCase();
-var ms3=!surveyor||safeStr(r.surveyorName)===surveyor;
-if(ms&&md&&ms2&&ms3) filteredRawData.push(r);
+  var pages=[];
+  for(var i=1;i<=totalPages;i++){
+    if(i===1||i===totalPages||(i>=regPage-1&&i<=regPage+1)) pages.push(i);
+    else if(pages[pages.length-1]!=='…') pages.push('…');
+  }
+  var pHtml='<span class="pg-btn pg-arrow" onclick="changeRegPage(-1)">‹</span>';
+  for(var i=0;i<pages.length;i++){
+    pHtml+= pages[i]==='…' ? '<span style="color:var(--muted);font-size:11px;">…</span>' :
+      '<span class="pg-btn '+(pages[i]===regPage?'active':'')+'" onclick="goToRegPage('+pages[i]+')">'+pages[i]+'</span>';
+  }
+  pHtml+='<span class="pg-btn pg-arrow" onclick="changeRegPage(1)">›</span>';
+  document.getElementById('regPagination').innerHTML=pHtml;
 }
-rawPage=1;
-renderRawTable();
+function changeRegPage(dir){
+  var totalPages=Math.ceil(filteredReg.length/regPerPage)||1;
+  regPage=Math.max(1,Math.min(totalPages,regPage+dir));
+  renderRegister();
 }
-
-function renderRawTable(){
-var start=(rawPage-1)*rawPerPage,end=start+rawPerPage;
-var pageData=[];
-for(var i=start;i<Math.min(end,filteredRawData.length);i++) pageData.push(filteredRawData[i]);
-var totalPages=Math.ceil(filteredRawData.length/rawPerPage)||1;
-document.getElementById('rawShowing').textContent=filteredRawData.length;
-document.getElementById('rawTotal').textContent=rawData.length;
-var tbody=document.getElementById('rawTableBody');
-var html='';
-for(var i=0;i<pageData.length;i++){
-var r=pageData[i];
-var status=isDone(r)?'<span class="badge status-done">Done</span>':'<span class="badge status-pending">Pending</span>';
-var method=safeStr(r.surveyedByDgpsOrMobile);
-html+='<tr class="hover:bg-slate-800/30 transition"><td class="px-3 py-2 font-mono text-slate-300">'+(r.psid||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.district||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.tehsil||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.mouza||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.khasraNumber||'-')+'</td><td class="px-3 py-2 text-slate-300">'+(r.ownerName||'-')+'</td><td class="px-3 py-2 text-slate-400">'+(r.surveyorName||'-')+'</td><td class="px-3 py-2 text-center">'+status+'</td><td class="px-3 py-2 text-center text-purple-400">'+(r.numberOfParcelsCreated||'0')+'</td><td class="px-3 py-2 text-center text-slate-400">'+method+'</td><td class="px-3 py-2 text-slate-500 max-w-xs truncate" title="'+(r.surveyRemarks||'')+'">'+(r.surveyRemarks||'-')+'</td></tr>';
-}
-tbody.innerHTML=html;
-
-var pages=[];
-for(var i=1;i<=totalPages;i++){
-if(i===1||i===totalPages||(i>=rawPage-1&&i<=rawPage+1)) pages.push(i);
-else if(i===rawPage-2||i===rawPage+2) pages.push('...');
-}
-var filteredPages=[];
-for(var i=0;i<pages.length;i++){
-if(pages[i]==='...'&&filteredPages.length>0&&filteredPages[filteredPages.length-1]==='...') continue;
-filteredPages.push(pages[i]);
-}
-var pHtml='';
-for(var i=0;i<filteredPages.length;i++){
-var p=filteredPages[i];
-if(p==='...') pHtml+='<span class="text-slate-600 text-xs px-1">...</span>';
-else pHtml+='<button onclick="goToPage('+p+')" class="page-btn '+(p===rawPage?'active':'bg-slate-800 text-slate-400 hover:bg-slate-700')+' transition">'+p+'</button>';
-}
-document.getElementById('rawPagination').innerHTML=pHtml;
-}
-
-function changePage(dir){
-var totalPages=Math.ceil(filteredRawData.length/rawPerPage)||1;
-rawPage=Math.max(1,Math.min(totalPages,rawPage+dir));
-renderRawTable();
-}
-
-function goToPage(p){
-rawPage=p;
-renderRawTable();
-}
+function goToRegPage(p){regPage=p;renderRegister();}
 
 function switchTab(tab){
-currentTab=tab;
-var contents=document.querySelectorAll('.tab-content');
-for(var i=0;i<contents.length;i++) contents[i].classList.add('hidden');
-document.getElementById('tab-'+tab).classList.remove('hidden');
-var btns=document.querySelectorAll('.tab-btn');
-for(var i=0;i<btns.length;i++){
-var btn=btns[i];
-if(btn.dataset.tab===tab){
-btn.classList.add('active');
-btn.classList.remove('text-slate-500');
-}else{
-btn.classList.remove('active');
-btn.classList.add('text-slate-500');
-}
-}
+  document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===tab);});
 }
 
 init();
