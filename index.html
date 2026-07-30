@@ -98,7 +98,7 @@ nav.tabs{display:flex;gap:4px;margin-top:18px;border-bottom:1px solid var(--line
 .tab-content.active{display:block;}
 
 /* ---------- ledger strip (KPIs) ---------- */
-.ledger-strip{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--line);border-radius:2px;overflow:hidden;margin-bottom:20px;background:var(--ink-900);}
+.ledger-strip{display:grid;grid-template-columns:repeat(8,1fr);border:1px solid var(--line);border-radius:2px;overflow:hidden;margin-bottom:20px;background:var(--ink-900);}
 .ledger-cell{padding:14px 12px;border-right:1px solid var(--line);}
 .ledger-cell:last-child{border-right:none;}
 .ledger-label{font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
@@ -110,7 +110,7 @@ nav.tabs{display:flex;gap:4px;margin-top:18px;border-bottom:1px solid var(--line
 .v-red{color:var(--red);}
 .v-steel{color:var(--steel);}
 
-@media (max-width:900px){.ledger-strip{grid-template-columns:repeat(3,1fr);}.ledger-cell:nth-child(3n){border-right:none;}.ledger-cell{border-bottom:1px solid var(--line);}}
+@media (max-width:900px){.ledger-strip{grid-template-columns:repeat(4,1fr);}.ledger-cell:nth-child(4n){border-right:none;}.ledger-cell{border-bottom:1px solid var(--line);}}
 @media (max-width:520px){.ledger-strip{grid-template-columns:repeat(2,1fr);}.ledger-cell:nth-child(2n){border-right:none;}}
 
 /* ---------- section heading ---------- */
@@ -145,6 +145,7 @@ nav.tabs{display:flex;gap:4px;margin-top:18px;border-bottom:1px solid var(--line
 .stamp-done{color:var(--green);background:rgba(110,156,99,0.08);}
 .stamp-pending{color:var(--brass);background:rgba(201,162,75,0.08);}
 .stamp-issue{color:var(--red);background:rgba(193,89,74,0.08);}
+.stamp-other{color:var(--steel);background:rgba(127,160,179,0.08);}
 .overdue-flag{font-family:var(--font-mono);font-size:10px;color:var(--red);letter-spacing:0.04em;}
 
 /* ---------- filters / inputs ---------- */
@@ -238,6 +239,7 @@ td.italic-remark{font-style:italic;color:var(--muted);max-width:320px;}
         <div class="ledger-cell"><div class="ledger-label">PSIDs Received</div><div class="ledger-value v-paper" id="kpiTotal">0</div><div class="ledger-sub">across 4 districts</div></div>
         <div class="ledger-cell"><div class="ledger-label">Surveyed</div><div class="ledger-value v-green" id="kpiDone">0</div><div class="ledger-sub">marked done</div></div>
         <div class="ledger-cell"><div class="ledger-label">Pending</div><div class="ledger-value v-brass" id="kpiPending">0</div><div class="ledger-sub">in backlog</div></div>
+        <div class="ledger-cell"><div class="ledger-label">Other Surveyor</div><div class="ledger-value v-steel" id="kpiOtherSurveyor">0</div><div class="ledger-sub">not our backlog</div></div>
         <div class="ledger-cell"><div class="ledger-label">Overdue</div><div class="ledger-value v-red" id="kpiOverdue">0</div><div class="ledger-sub">&gt;14 days open</div></div>
         <div class="ledger-cell"><div class="ledger-label">Completion</div><div class="ledger-value v-brass" id="kpiProgress">0%</div><div class="ledger-sub">of total PSIDs</div></div>
         <div class="ledger-cell"><div class="ledger-label">Parcels Mapped</div><div class="ledger-value v-steel" id="kpiParcels">0</div><div class="ledger-sub">total created</div></div>
@@ -262,7 +264,7 @@ td.italic-remark{font-style:italic;color:var(--muted);max-width:320px;}
         <div class="reg-scroll">
           <table>
             <thead><tr>
-              <th>District</th><th>Total</th><th>Done</th><th>Pending</th><th>Overdue</th><th>Parcels</th><th>Completion</th>
+              <th>District</th><th>Total</th><th>Done</th><th>Pending</th><th>Other Surveyor</th><th>Overdue</th><th>Parcels</th><th>Completion</th>
             </tr></thead>
             <tbody id="districtTableBody"></tbody>
           </table>
@@ -317,7 +319,7 @@ td.italic-remark{font-style:italic;color:var(--muted);max-width:320px;}
         <input type="text" class="ipt search" id="regSearch" placeholder="Search PSID or owner name…" oninput="filterRegister()">
         <select class="ipt" id="regFilterDistrict" onchange="filterRegister()"><option value="">All Districts</option></select>
         <select class="ipt" id="regFilterStatus" onchange="filterRegister()">
-          <option value="">All Status</option><option value="done">Done</option><option value="pending">Pending</option><option value="issue">Issue</option>
+          <option value="">All Status</option><option value="done">Done</option><option value="pending">Pending</option><option value="issue">Issue</option><option value="other_surveyor">Other Surveyor</option>
         </select>
         <select class="ipt" id="regFilterSurveyor" onchange="filterRegister()"><option value="">All Surveyors</option></select>
         <span class="tally">Showing <b id="regShowing">0</b> of <b id="regTotal">0</b></span>
@@ -348,9 +350,25 @@ function safeNum(v){var n=parseFloat(v);return isNaN(n)?0:n;}
 
 function getStatus(r){
   var s=safeLower(r.surveyStatus);
+  if(s.indexOf('already')>=0 && s.indexOf('done')>=0) return 'other_surveyor';
   if(s.indexOf('done')>=0) return 'done';
   if(s.indexOf('issue')>=0) return 'issue';
   return 'pending';
+}
+// Remark text that means "nothing further to discuss" - exact match only
+// (whole trimmed field, not a substring), based on phrasing actually found
+// in the sheets ("ok", "survey completed"). Anything else in a remark field
+// is treated as needing a look, even if short.
+var CLOSED_PHRASES=['ok','okay','done','completed','survey completed','no issue','resolved'];
+function isGenericClosureText(t){
+  var s=safeLower(t).replace(/[.,!]+$/,'').trim();
+  return CLOSED_PHRASES.indexOf(s)!==-1;
+}
+function hasSubstantiveRemark(r){
+  var c=safeStr(r.callingRemarks), s=safeStr(r.surveyRemarks);
+  var cClear = c===''||isGenericClosureText(c);
+  var sClear = s===''||isGenericClosureText(s);
+  return !(cClear && sClear);
 }
 function daysBetween(a,b){
   var d1=new Date(a), d2=new Date(b);
@@ -359,7 +377,8 @@ function daysBetween(a,b){
   return (d>=0&&d<3000)?d:null;
 }
 function isOverdue(r){
-  if(getStatus(r)==='done') return false;
+  var st=getStatus(r);
+  if(st==='done'||st==='other_surveyor') return false;
   if(!r.dateOfAssign) return false;
   var d=daysBetween(r.dateOfAssign,new Date());
   return d!==null && d>OVERDUE_DAYS;
@@ -370,6 +389,7 @@ function daysOpenLabel(r){
     var d=daysBetween(r.dateOfAssign,r.surveyCompletedDate);
     return d!==null?(d+'d (closed)'):'—';
   }
+  if(status==='other_surveyor') return 'n/a';
   if(r.dateOfAssign){
     var d=daysBetween(r.dateOfAssign,new Date());
     return d!==null?(d+'d open'):'—';
@@ -380,6 +400,7 @@ function statusStamp(r){
   var s=getStatus(r);
   if(s==='done') return '<span class="stamp stamp-done">Done</span>';
   if(s==='issue') return '<span class="stamp stamp-issue">Issue</span>';
+  if(s==='other_surveyor') return '<span class="stamp stamp-other">Other Surveyor</span>';
   return '<span class="stamp stamp-pending">Pending</span>';
 }
 function esc(v){return safeStr(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -449,10 +470,10 @@ function process(){
   for(var i=0;i<data.length;i++){var d=safeStr(data[i].district);if(d&&!seen[d]){seen[d]=true;}}
   var districts=districtOrder.length?districtOrder:Object.keys(seen);
 
-  var total=data.length, done=0, pending=0, issue=0, overdue=0, totalParcels=0, totalDays=0, closedWithDates=0;
+  var total=data.length, done=0, pending=0, issue=0, otherSurveyor=0, overdue=0, totalParcels=0, totalDays=0, closedWithDates=0;
   for(var i=0;i<data.length;i++){
     var r=data[i], st=getStatus(r);
-    if(st==='done') done++; else if(st==='issue') issue++; else pending++;
+    if(st==='done') done++; else if(st==='issue') issue++; else if(st==='other_surveyor') otherSurveyor++; else pending++;
     if(isOverdue(r)) overdue++;
     totalParcels+=safeNum(r.numberOfParcelsCreated);
     if(st==='done'&&r.dateOfAssign&&r.surveyCompletedDate){
@@ -468,12 +489,13 @@ function process(){
     var name=districts[di];
     var rows=data.filter(function(r){return safeStr(r.district)===name;});
     var dDone=rows.filter(function(r){return getStatus(r)==='done';}).length;
-    var dPending=rows.length-dDone;
+    var dOther=rows.filter(function(r){return getStatus(r)==='other_surveyor';}).length;
+    var dPending=rows.length-dDone-dOther;
     var dOverdue=rows.filter(isOverdue).length;
     var dParcels=rows.reduce(function(s,r){return s+safeNum(r.numberOfParcelsCreated);},0);
     var dgps=rows.filter(function(r){return safeLower(r.surveyedByDgpsOrMobile).indexOf('dgps')>=0;}).length;
     var mobile=rows.filter(function(r){return safeLower(r.surveyedByDgpsOrMobile).indexOf('mobile')>=0;}).length;
-    districtStats[name]={total:rows.length,done:dDone,pending:dPending,overdue:dOverdue,parcels:dParcels,dgps:dgps,mobile:mobile,
+    districtStats[name]={total:rows.length,done:dDone,pending:dPending,otherSurveyor:dOther,overdue:dOverdue,parcels:dParcels,dgps:dgps,mobile:mobile,
       pct:rows.length>0?Math.round((dDone/rows.length)*100):0};
   }
 
@@ -484,7 +506,8 @@ function process(){
     if(!surveyorMap[name]) surveyorMap[name]={name:name,done:0,pending:0,total:0,parcels:0,days:0,daysN:0};
     var s=surveyorMap[name];
     s.total++;
-    if(getStatus(r)==='done') s.done++; else s.pending++;
+    var stg=getStatus(r);
+    if(stg==='done') s.done++; else if(stg!=='other_surveyor') s.pending++;
     s.parcels+=safeNum(r.numberOfParcelsCreated);
     if(getStatus(r)==='done'&&r.dateOfAssign&&r.surveyCompletedDate){
       var d=daysBetween(r.dateOfAssign,r.surveyCompletedDate);
@@ -498,11 +521,22 @@ function process(){
       avgDays:s.daysN>0?(s.days/s.daysN).toFixed(1):'—'};
   }).sort(function(a,b){return b.done-a.done;});
 
-  var issuesRows=data.filter(function(r){return safeStr(r.surveyRemarks)!==''||safeStr(r.callingRemarks)!=='';})
+  // Flagged Entries: only rows that (a) aren't already Done or already
+  // handled by another surveyor, and (b) have a remark that says more
+  // than "ok"/"survey completed" - i.e. something actually worth a
+  // discussion, not just a closed note.
+  var issuesRows=data.filter(function(r){
+      var st=getStatus(r);
+      if(st==='done'||st==='other_surveyor') return false;
+      return hasSubstantiveRemark(r);
+    })
     .map(function(r){
-      var hasSurvey=safeStr(r.surveyRemarks)!=='';
+      var c=safeStr(r.callingRemarks), s=safeStr(r.surveyRemarks);
+      var sOk = s!==''&&!isGenericClosureText(s);
+      var cOk = c!==''&&!isGenericClosureText(c);
+      var useSurvey = sOk || (s!==''&&!cOk);
       return {psid:r.psid,district:r.district,surveyorName:r.surveyorName,status:getStatus(r),
-        type:hasSurvey?'Survey':'Calling', remark:hasSurvey?r.surveyRemarks:r.callingRemarks};
+        type:useSurvey?'Survey':'Calling', remark:useSurvey?s:c};
     });
 
   var trend=[];
@@ -514,7 +548,7 @@ function process(){
     trend.push({label:(day.getMonth()+1)+'/'+day.getDate(),count:count});
   }
 
-  processed={total:total,done:done,pending:pending,issue:issue,overdue:overdue,progress:progress,
+  processed={total:total,done:done,pending:pending,issue:issue,otherSurveyor:otherSurveyor,overdue:overdue,progress:progress,
     totalParcels:totalParcels,avgDays:avgDays,districts:districts,districtStats:districtStats,
     surveyorList:surveyorList,issuesRows:issuesRows,trend:trend};
 }
@@ -535,6 +569,7 @@ function renderKpis(){
   document.getElementById('kpiTotal').textContent=p.total;
   document.getElementById('kpiDone').textContent=p.done;
   document.getElementById('kpiPending').textContent=p.pending+p.issue;
+  document.getElementById('kpiOtherSurveyor').textContent=p.otherSurveyor;
   document.getElementById('kpiOverdue').textContent=p.overdue;
   document.getElementById('kpiProgress').textContent=p.progress+'%';
   document.getElementById('kpiParcels').textContent=p.totalParcels;
@@ -551,6 +586,7 @@ function renderFolios(){
       '<div class="folio-row"><span>Total</span><b>'+s.total+'</b></div>'+
       '<div class="folio-row"><span>Done</span><b>'+s.done+'</b></div>'+
       '<div class="folio-row"><span>Pending</span><b>'+s.pending+'</b></div>'+
+      (s.otherSurveyor>0?'<div class="folio-row"><span>Other Surveyor</span><b style="color:var(--steel)">'+s.otherSurveyor+'</b></div>':'')+
       '<div class="folio-row"><span>Overdue</span><b style="color:var(--red)">'+s.overdue+'</b></div>'+
       '<div class="folio-bar"><div class="folio-fill" style="width:'+s.pct+'%"></div></div>'+
       '<div class="folio-pct">'+s.pct+'% complete</div></div>';
@@ -564,7 +600,7 @@ function renderDistrictTable(){
   for(var i=0;i<processed.districts.length;i++){
     var name=processed.districts[i], s=processed.districtStats[name];
     if(!s) continue;
-    html+='<tr><td class="mono">'+esc(name)+'</td><td>'+s.total+'</td><td style="color:var(--green)">'+s.done+'</td><td style="color:var(--brass)">'+s.pending+'</td><td style="color:var(--red)">'+s.overdue+'</td><td>'+s.parcels+'</td><td>'+s.pct+'%</td></tr>';
+    html+='<tr><td class="mono">'+esc(name)+'</td><td>'+s.total+'</td><td style="color:var(--green)">'+s.done+'</td><td style="color:var(--brass)">'+s.pending+'</td><td style="color:var(--steel)">'+s.otherSurveyor+'</td><td style="color:var(--red)">'+s.overdue+'</td><td>'+s.parcels+'</td><td>'+s.pct+'%</td></tr>';
   }
   tbody.innerHTML=html;
 }
@@ -578,7 +614,7 @@ function renderCharts(){
   if(charts.status) charts.status.destroy();
   charts.status=new Chart(document.getElementById('chartStatus'),{
     type:'doughnut',
-    data:{labels:['Done','Pending','Issue'],datasets:[{data:[p.done,p.pending,p.issue],backgroundColor:['#6E9C63','#C9A24B','#C1594A'],borderColor:'#191D14',borderWidth:2}]},
+    data:{labels:['Done','Pending','Issue','Other Surveyor'],datasets:[{data:[p.done,p.pending,p.issue,p.otherSurveyor],backgroundColor:['#6E9C63','#C9A24B','#C1594A','#7FA0B3'],borderColor:'#191D14',borderWidth:2}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{color:muted,font:{size:11},boxWidth:10,padding:14}}}}
   });
 
