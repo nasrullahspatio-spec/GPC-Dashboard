@@ -121,7 +121,19 @@ html,body{height:100%;font-family:var(--font-sans);color:var(--text-primary);bac
 
 #adminApp{display:none;}
 .admin-shell{display:flex;min-height:100vh;}
-.sidebar{width:var(--sidebar-w);background:var(--bg-surface);border-right:1px solid var(--border);position:fixed;top:0;left:0;bottom:0;z-index:50;display:flex;flex-direction:column;transition:transform var(--dur) var(--ease-in-out);}
+.sidebar{width:var(--sidebar-w);background:var(--bg-surface);border-right:1px solid var(--border);position:fixed;top:0;left:0;bottom:0;z-index:50;display:flex;flex-direction:column;transition:width var(--dur) var(--ease-in-out),transform var(--dur) var(--ease-in-out);overflow:hidden;}
+.sidebar.collapsed{width:64px;}
+.sidebar.collapsed .logo-text,.sidebar.collapsed .nav-section,.sidebar.collapsed .nav-item span:not(.badge-count),.sidebar.collapsed .user-info,.sidebar.collapsed .logout-btn{opacity:0;pointer-events:none;white-space:nowrap;}
+.sidebar.collapsed .logo-row{justify-content:center;}
+.sidebar.collapsed .nav-item{justify-content:center;padding:10px;}
+.sidebar.collapsed .nav-item svg{margin:0;}
+.sidebar.collapsed .sidebar-footer{padding:14px 10px;}
+.sidebar.collapsed .user-chip{justify-content:center;}
+.sidebar.collapsed .sidebar-brand{padding:20px 10px 16px;}
+.sidebar-toggle{position:absolute;top:18px;right:-12px;width:24px;height:24px;background:var(--bg-surface);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow-sm);font-size:12px;color:var(--text-tertiary);z-index:51;transition:all var(--dur-fast) var(--ease-in-out);}
+.sidebar-toggle:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.main-area{flex:1;margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column;transition:margin-left var(--dur) var(--ease-in-out);}
+.main-area.sidebar-collapsed{margin-left:64px;}
 .sidebar-brand{padding:var(--space-5) var(--space-5) var(--space-4);border-bottom:1px solid var(--border);}
 .logo-row{display:flex;align-items:center;gap:var(--space-3);}
 .logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),#4f46e5);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(37,99,235,0.2);}
@@ -144,7 +156,7 @@ html,body{height:100%;font-family:var(--font-sans);color:var(--text-primary);bac
 .user-info .role{font-size:11px;color:var(--text-tertiary);text-transform:capitalize;}
 .logout-btn{font-size:12px;color:var(--text-tertiary);cursor:pointer;margin-top:4px;display:inline-flex;align-items:center;gap:4px;font-weight:500;transition:color var(--dur-fast) var(--ease-in-out);}
 .logout-btn:hover{color:var(--danger);}
-.main-area{flex:1;margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column;}
+
 .topbar{height:var(--header-h);border-bottom:1px solid var(--border);background:var(--bg-surface);display:flex;align-items:center;justify-content:space-between;padding:0 var(--space-6);position:sticky;top:0;z-index:40;}
 .topbar-left{display:flex;align-items:center;gap:var(--space-3);}
 .topbar h1{font-size:18px;font-weight:700;letter-spacing:-0.02em;}
@@ -315,7 +327,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 </head>
 <body>
 
-<div id="loadingScreen"><div class="loader"></div><p>Initializing application…</p></div>
+<div id="loadingScreen"><img src="./gpc-logo.png" alt="GPC" style="width:120px;height:120px;object-fit:contain;margin-bottom:16px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.1));"><p>Initializing application…</p></div>
 <div id="toastStack"></div>
 
 <div class="confirm-overlay" id="confirmOverlay">
@@ -373,6 +385,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
           <div class="logo-icon">GPC</div>
           <div class="logo-text"><h2>Field Survey</h2><p>Lahore Division</p></div>
         </div>
+        <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebarCollapse()" title="Collapse sidebar">◀</button>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">Dashboard</div>
@@ -836,12 +849,12 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
    FIREBASE CONFIG — REPLACE WITH YOUR CREDENTIALS
    ============================================================ */
 var firebaseConfig = {
-  apiKey: "AIzaSyB16RrnyX01t3TJ1h1OjOzg38z0qMj_axo",
-  authDomain: "gpc-survey-register.firebaseapp.com",
-  projectId: "gpc-survey-register",
-  storageBucket: "gpc-survey-register.firebasestorage.app",
-  messagingSenderId: "90363610387",
-  appId: "1:90363610387:web:b31cf5f39dd45d63fb06e6"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 var EMAIL_DOMAIN = "gpc-survey.local";
 
@@ -1393,7 +1406,7 @@ function renderSurveyors() {
       { label: 'Done', data: top10.map(function(s) { return s.done; }), backgroundColor: '#059669', borderRadius: 6 },
       { label: 'Pending', data: top10.map(function(s) { return s.pending; }), backgroundColor: '#d97706', borderRadius: 6 }
     ]},
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { usePointStyle: true, padding: 16 } } }, scales: { x: { ticks: { color: muted, font: { size: 10 } }, grid: { display: false } }, y: { ticks: { color: muted, font: { size: 10 }, precision: 0 }, grid: { color: '#e2e8f0' }, beginAtZero: true } } }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { usePointStyle: true, padding: 16 } } }, scales: { x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } }, y: { ticks: { color: '#94a3b8', font: { size: 10 }, precision: 0 }, grid: { color: '#e2e8f0' }, beginAtZero: true } } }
   });
 }
 
@@ -1425,7 +1438,7 @@ function renderIssues() {
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i];
     var stamp = r.status === 'done' ? '<span class="badge badge-success">Done</span>' : r.status === 'issue' ? '<span class="badge badge-danger">Issue</span>' : r.status === 'other_surveyor' ? '<span class="badge badge-info">Other Surveyor</span>' : '<span class="badge badge-warning">Pending</span>';
-    html += '<tr><td class="mono" style="font-weight:600;">' + esc(r.psid || '—') + '</td><td>' + esc(r.district || '—') + '</td><td>' + esc(r.surveyorName || '—') + '</td><td>' + stamp + '</td><td>' + r.type + '</td><td class="italic-remark">' + esc(r.remark || '—') + '</td><td><button class="btn small secondary" onclick="openEditByDocId(\'' + r.docId + '\')">Edit</button></td></tr>';
+    html += '<tr><td class="mono" style="font-weight:600;">' + esc(r.psid || '—') + '</td><td>' + esc(r.district || '—') + '</td><td>' + esc(r.surveyorName || '—') + '</td><td>' + stamp + '</td><td>' + r.type + '</td><td class="italic-remark">' + esc(r.remark || '—') + '</td><td><button class="btn small secondary" onclick="openEditByDocId('' + r.docId + '')">Edit</button></td></tr>';
   }
   tbody.innerHTML = html;
 }
@@ -1465,7 +1478,7 @@ function renderRegister() {
   for (var i = 0; i < pageData.length; i++) {
     var r = pageData[i].r, docId = docIds[pageData[i].idx];
     var overdueTag = isOverdue(r) ? ' <span class="overdue-flag">⚑ overdue</span>' : '';
-    html += '<tr><td class="mono" style="font-weight:600;">' + esc(r.psid || '—') + '</td><td>' + esc(r.district || '—') + '</td><td>' + esc(r.tehsil || '—') + '</td><td>' + esc(r.mouza || '—') + '</td><td class="mono">' + esc(r.khasraNumber || '—') + '</td><td>' + esc(r.ownerName || '—') + '</td><td>' + esc(r.surveyorName || '—') + '</td><td>' + statusStamp(r) + '</td><td>' + (r.numberOfParcelsCreated || '0') + '</td><td>' + esc(r.surveyedByDgpsOrMobile || '—') + '</td><td>' + daysOpenLabel(r) + overdueTag + '</td><td class="italic-remark" title="' + esc(r.surveyRemarks || '') + '">' + esc(r.surveyRemarks || '—') + '</td><td><button class="btn small secondary" onclick="openEditByDocId(\'' + docId + '\')">Edit</button></td></tr>';
+    html += '<tr><td class="mono" style="font-weight:600;">' + esc(r.psid || '—') + '</td><td>' + esc(r.district || '—') + '</td><td>' + esc(r.tehsil || '—') + '</td><td>' + esc(r.mouza || '—') + '</td><td class="mono">' + esc(r.khasraNumber || '—') + '</td><td>' + esc(r.ownerName || '—') + '</td><td>' + esc(r.surveyorName || '—') + '</td><td>' + statusStamp(r) + '</td><td>' + (r.numberOfParcelsCreated || '0') + '</td><td>' + esc(r.surveyedByDgpsOrMobile || '—') + '</td><td>' + daysOpenLabel(r) + overdueTag + '</td><td class="italic-remark" title="' + esc(r.surveyRemarks || '') + '">' + esc(r.surveyRemarks || '—') + '</td><td><button class="btn small secondary" onclick="openEditByDocId('' + docId + '')">Edit</button></td></tr>';
   }
   tbody.innerHTML = html;
 
@@ -1489,11 +1502,22 @@ function switchTab(tab) {
   document.getElementById('pageTitle').textContent = TAB_TITLES[tab] || tab;
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('show');
+  if (tab === 'register' && rawData.length > 0) { populateRegisterFilters(); filterRegister(); }
+  if (tab === 'daily') { renderDailyActivity(); renderDailyCharts(); }
 }
 
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+function toggleSidebarCollapse() {
+  var sb = document.getElementById('sidebar');
+  var main = document.querySelector('.main-area');
+  var btn = document.getElementById('sidebarToggle');
+  sb.classList.toggle('collapsed');
+  main.classList.toggle('sidebar-collapsed');
+  btn.textContent = sb.classList.contains('collapsed') ? '▶' : '◀';
+  btn.title = sb.classList.contains('collapsed') ? 'Expand sidebar' : 'Collapse sidebar';
 }
 
 /* ============================================================
@@ -1691,7 +1715,7 @@ function renderMobileCard(r, docId) {
   var statusClass = 'status-' + status;
   var statusBadge = status === 'done' ? '<span class="badge badge-success">Done</span>' : status === 'issue' ? '<span class="badge badge-danger">Issue</span>' : status === 'other_surveyor' ? '<span class="badge badge-info">Other</span>' : '<span class="badge badge-warning">Pending</span>';
   var days = daysOpenLabel(r);
-  return '<div class="mobile-card ' + statusClass + '" onclick="openMobileEdit(\'' + docId + '\')">' +
+  return '<div class="mobile-card ' + statusClass + '" onclick="openMobileEdit('' + docId + '')">' +
     '<div class="mobile-card-header"><span class="mobile-card-psid">' + esc(r.psid || '—') + '</span>' + statusBadge + '</div>' +
     '<div class="mobile-card-body">' +
     '<div class="row"><span>District</span><b>' + esc(r.district || '—') + '</b></div>' +
