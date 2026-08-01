@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GPC Survey">
+<meta name="description" content="Field Survey Register — GPC Punjab">
+<link rel="manifest" href="./manifest.json">
 <title>Field Survey Register — GPC Punjab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -936,6 +942,22 @@ firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.firestore();
 try { db.enablePersistence({synchronizeTabs:false}); } catch(e) { console.warn('Offline persistence not enabled:', e.message); }
+
+/* ---------- PWA Service Worker ---------- */
+(function() {
+  var swCode = [
+    "var CACHE_NAME = 'gpc-survey-v1';",
+    "var urlsToCache = ['./','./index.html','./gpc-logo.png','./manifest.json'];",
+    "self.addEventListener('install',function(e){e.waitUntil(caches.open(CACHE_NAME).then(function(c){return c.addAll(urlsToCache);}));self.skipWaiting();});",
+    "self.addEventListener('activate',function(e){e.waitUntil(self.clients.claim());});",
+    "self.addEventListener('fetch',function(e){if(e.request.url.includes('firestore')||e.request.url.includes('googleapis'))return;e.respondWith(caches.match(e.request).then(function(r){if(r)return r;return fetch(e.request).then(function(r2){if(!r2||r2.status!==200||r2.type!=='basic')return r2;var rc=r2.clone();caches.open(CACHE_NAME).then(function(c){c.put(e.request,rc);});return r2;});}));});"
+  ].join('');
+  var blob = new Blob([swCode], {type: 'application/javascript'});
+  var swUrl = URL.createObjectURL(blob);
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register(swUrl).then(function(reg){ console.log('SW registered:', reg.scope); }).catch(function(err){ console.log('SW failed:', err); });
+  }
+})();
 
 var currentUser = null, currentRole = null, currentName = null, currentUsername = null;
 var rawData = [], docIds = [], processed = null, charts = {};
