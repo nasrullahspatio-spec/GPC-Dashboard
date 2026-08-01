@@ -1425,7 +1425,7 @@ function renderIssues() {
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i];
     var stamp = r.status === 'done' ? '<span class="badge badge-success">Done</span>' : r.status === 'issue' ? '<span class="badge badge-danger">Issue</span>' : r.status === 'other_surveyor' ? '<span class="badge badge-info">Other Surveyor</span>' : '<span class="badge badge-warning">Pending</span>';
-    html += '<tr><td class="mono" style="font-weight:600;">' + esc(r.psid || '—') + '</td><td>' + esc(r.district || '—') + '</td><td>' + esc(r.surveyorName || '—') + '</td><td>' + stamp + '</td><td>' + r.type + '</td><td class="italic-remark">' + esc(r.remark || '—') + '</td><td><button class="btn small secondary" onclick="openEditByDocId('' + r.docId + '')">Edit</button></td></tr>';
+    html += '<tr><td class="mono" style="font-weight:600;">' + esc(r.psid || '—') + '</td><td>' + esc(r.district || '—') + '</td><td>' + esc(r.surveyorName || '—') + '</td><td>' + stamp + '</td><td>' + r.type + '</td><td class="italic-remark">' + esc(r.remark || '—') + '</td><td><button class="btn small secondary" onclick="openEditByDocId(\'' + r.docId + '\')">Edit</button></td></tr>';
   }
   tbody.innerHTML = html;
 }
@@ -1465,7 +1465,7 @@ function renderRegister() {
   for (var i = 0; i < pageData.length; i++) {
     var r = pageData[i].r, docId = docIds[pageData[i].idx];
     var overdueTag = isOverdue(r) ? ' <span class="overdue-flag">⚑ overdue</span>' : '';
-    html += '<tr><td class="mono" style="font-weight:600;">' + esc(r.psid || '—') + '</td><td>' + esc(r.district || '—') + '</td><td>' + esc(r.tehsil || '—') + '</td><td>' + esc(r.mouza || '—') + '</td><td class="mono">' + esc(r.khasraNumber || '—') + '</td><td>' + esc(r.ownerName || '—') + '</td><td>' + esc(r.surveyorName || '—') + '</td><td>' + statusStamp(r) + '</td><td>' + (r.numberOfParcelsCreated || '0') + '</td><td>' + esc(r.surveyedByDgpsOrMobile || '—') + '</td><td>' + daysOpenLabel(r) + overdueTag + '</td><td class="italic-remark" title="' + esc(r.surveyRemarks || '') + '">' + esc(r.surveyRemarks || '—') + '</td><td><button class="btn small secondary" onclick="openEditByDocId('' + docId + '')">Edit</button></td></tr>';
+    html += '<tr><td class="mono" style="font-weight:600;">' + esc(r.psid || '—') + '</td><td>' + esc(r.district || '—') + '</td><td>' + esc(r.tehsil || '—') + '</td><td>' + esc(r.mouza || '—') + '</td><td class="mono">' + esc(r.khasraNumber || '—') + '</td><td>' + esc(r.ownerName || '—') + '</td><td>' + esc(r.surveyorName || '—') + '</td><td>' + statusStamp(r) + '</td><td>' + (r.numberOfParcelsCreated || '0') + '</td><td>' + esc(r.surveyedByDgpsOrMobile || '—') + '</td><td>' + daysOpenLabel(r) + overdueTag + '</td><td class="italic-remark" title="' + esc(r.surveyRemarks || '') + '">' + esc(r.surveyRemarks || '—') + '</td><td><button class="btn small secondary" onclick="openEditByDocId(\'' + docId + '\')">Edit</button></td></tr>';
   }
   tbody.innerHTML = html;
 
@@ -1691,7 +1691,7 @@ function renderMobileCard(r, docId) {
   var statusClass = 'status-' + status;
   var statusBadge = status === 'done' ? '<span class="badge badge-success">Done</span>' : status === 'issue' ? '<span class="badge badge-danger">Issue</span>' : status === 'other_surveyor' ? '<span class="badge badge-info">Other</span>' : '<span class="badge badge-warning">Pending</span>';
   var days = daysOpenLabel(r);
-  return '<div class="mobile-card ' + statusClass + '" onclick="openMobileEdit('' + docId + '')">' +
+  return '<div class="mobile-card ' + statusClass + '" onclick="openMobileEdit(\'' + docId + '\')">' +
     '<div class="mobile-card-header"><span class="mobile-card-psid">' + esc(r.psid || '—') + '</span>' + statusBadge + '</div>' +
     '<div class="mobile-card-body">' +
     '<div class="row"><span>District</span><b>' + esc(r.district || '—') + '</b></div>' +
