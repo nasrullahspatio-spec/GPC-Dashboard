@@ -1872,8 +1872,8 @@ function renderMobileCard(r, docId) {
   var statusBadge = status === 'done' ? '<span class="badge badge-success">Done</span>' : status === 'issue' ? '<span class="badge badge-danger">Issue</span>' : status === 'other_surveyor' ? '<span class="badge badge-info">Other</span>' : '<span class="badge badge-warning">Pending</span>';
   var days = daysOpenLabel(r);
   var canEdit = safeStr(r.surveyorName) === currentName || currentRole === 'admin';
-  var editBtn = canEdit ? '<button class="btn secondary" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();openMobileEdit('' + docId + '')">Edit</button>' : '';
-  return '<div class="mobile-card ' + statusClass + '" onclick="openMobileEdit('' + docId + '')">' +
+  var editBtn = canEdit ? '<button class="btn secondary" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();openMobileEdit(\'' + docId + '\')">Edit</button>' : '';
+  return '<div class="mobile-card ' + statusClass + '" onclick="openMobileEdit(\'' + docId + '\')">' +
     '<div class="mobile-card-header"><span class="mobile-card-psid">' + esc(r.psid || '—') + '</span>' + statusBadge + '</div>' +
     '<div class="mobile-card-body">' +
     '<div class="row"><span>District</span><b>' + esc(r.district || '—') + '</b></div>' +
