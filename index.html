@@ -835,13 +835,13 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
   <div class="surveyor-content" id="surveyorAdd" style="display:none;">
     <div class="mobile-section-header" style="margin-bottom:var(--space-4);"><h3>Add New PSID</h3></div>
     <div class="mobile-form">
-      <div class="field"><label>PSID *</label><input type="text" id="sfPsid" onblur="checkMobilePsidDuplicate()"><span id="sfPsidCheckMsg" style="font-size:12px;display:block;margin-top:4px;color:var(--text-tertiary);"></span></div>
+      <div class="field"><label>PSID *</label><input type="text" id="sfPsid" inputmode="numeric" pattern="[0-9]*" placeholder="Numbers only" onblur="checkMobilePsidDuplicate()"><span id="sfPsidCheckMsg" style="font-size:12px;display:block;margin-top:4px;color:var(--text-tertiary);"></span></div>
       <div class="field"><label>District *</label><select id="sfDistrict" onchange="populateMobileTehsil()"><option>Lahore</option><option>Kasur</option><option>Sheikhupura</option><option>Nankana Sahib</option></select></div>
       <div class="field"><label>Tehsil</label><select id="sfTehsil" onchange="handleMobileTehsil()"></select><input type="text" id="sfTehsilOther" placeholder="Type tehsil name" style="display:none;margin-top:6px;"></div>
       <div class="field"><label>Mouza</label><input type="text" id="sfMouza"></div>
       <div class="field"><label>Khasra Number</label><input type="text" id="sfKhasra"></div>
       <div class="field"><label>Owner Name</label><input type="text" id="sfOwner"></div>
-      <div class="field"><label>Contact Number</label><input type="text" id="sfContact"></div>
+      <div class="field"><label>Contact Number</label><input type="tel" id="sfContact" inputmode="numeric" maxlength="11" placeholder="03001234567"></div>
       <div class="field"><label>Date of Assign</label><input type="date" id="sfDateAssign"></div>
       <div class="field"><label>Survey Status</label>
         <select id="sfStatus" onchange="handleMobileStatus()"><option value="">— select —</option><option>Done</option><option>Survey pending</option><option>issue convyed</option><option>Already done by another surveyor</option></select>
@@ -894,13 +894,13 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
     </div>
     <input type="hidden" id="editDocId">
     <div class="form-grid">
-      <div class="field"><label>PSID *</label><input type="text" id="fPsid" onblur="checkPsidDuplicate()"><span id="psidCheckMsg" style="font-size:12px;display:block;margin-top:4px;color:var(--text-tertiary);"></span></div>
+      <div class="field"><label>PSID *</label><input type="text" id="fPsid" inputmode="numeric" pattern="[0-9]*" placeholder="Numbers only" onblur="checkPsidDuplicate()"><span id="psidCheckMsg" style="font-size:12px;display:block;margin-top:4px;color:var(--text-tertiary);"></span></div>
       <div class="field"><label>District *</label><select id="fDistrict" onchange="populateTehsilOptions()"><option>Lahore</option><option>Kasur</option><option>Sheikhupura</option><option>Nankana Sahib</option></select></div>
       <div class="field"><label>Tehsil</label><select id="fTehsil" onchange="handleTehsilChange()"></select><input type="text" id="fTehsilOther" placeholder="Type tehsil name" style="display:none;margin-top:6px;"></div>
       <div class="field"><label>Mouza</label><input type="text" id="fMouza"></div>
       <div class="field"><label>Khasra Number</label><input type="text" id="fKhasra"></div>
       <div class="field"><label>Owner Name</label><input type="text" id="fOwner"></div>
-      <div class="field"><label>Contact Number</label><input type="text" id="fContact"></div>
+      <div class="field"><label>Contact Number</label><input type="tel" id="fContact" inputmode="numeric" maxlength="11" placeholder="03001234567"></div>
       <div class="field"><label>Date of Assign</label><input type="date" id="fDateAssign"></div>
       <div class="field"><label>Surveyor Name</label><select id="fSurveyor"></select></div>
       <div class="field"><label>Survey Status</label><select id="fStatus" onchange="handleStatusChange()"><option value="">— select —</option><option>Done</option><option>Survey pending</option><option>issue convyed</option><option>Already done by another surveyor</option></select></div>
@@ -2206,6 +2206,25 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!fab) return;
   fab.addEventListener('mouseenter', function() { expandFab(); });
   fab.addEventListener('mouseleave', function() { collapseFab(); });
+
+  // --- Input sanitization: numbers only ---
+  function digitsOnly(el) {
+    if (!el) return;
+    el.addEventListener('input', function(e) {
+      e.target.value = e.target.value.replace(/\D/g, '');
+    });
+  }
+  function phoneOnly(el) {
+    if (!el) return;
+    el.addEventListener('input', function(e) {
+      var v = e.target.value.replace(/\D/g, '').slice(0, 11);
+      e.target.value = v;
+    });
+  }
+  digitsOnly(document.getElementById('fPsid'));
+  digitsOnly(document.getElementById('sfPsid'));
+  phoneOnly(document.getElementById('fContact'));
+  phoneOnly(document.getElementById('sfContact'));
 });
 </script>
 
