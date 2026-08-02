@@ -248,11 +248,11 @@ html,body{height:100%;font-family:var(--font-sans);color:var(--text-primary);bac
 .folio-bar{height:6px;border-radius:3px;background:var(--bg-base);overflow:hidden;margin-top:var(--space-3);}
 .folio-fill{height:100%;background:linear-gradient(90deg,var(--success),#34d399);border-radius:3px;transition:width .8s var(--ease-out);}
 
-.table-wrap{border:1px solid var(--border);background:var(--bg-surface);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);}
-.table-scroll{max-height:60vh;overflow:auto;-webkit-overflow-scrolling:touch;}
+.table-wrap{border:1px solid var(--border);background:var(--bg-surface);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);max-width:100%;}
+.table-scroll{max-height:60vh;overflow:auto;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 table{width:auto;min-width:100%;border-collapse:collapse;font-size:13px;}
 thead th{position:sticky;top:0;background:var(--bg-subtle);text-align:left;padding:12px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-tertiary);border-bottom:1px solid var(--border);z-index:2;white-space:nowrap;}
-tbody td{padding:12px 16px;border-bottom:1px solid var(--border);color:var(--text-secondary);vertical-align:middle;transition:background var(--dur-fast) var(--ease-in-out);}
+tbody td{padding:12px 16px;border-bottom:1px solid var(--border);color:var(--text-secondary);vertical-align:middle;transition:background var(--dur-fast) var(--ease-in-out);white-space:nowrap;}
 tbody tr{transition:background var(--dur-fast) var(--ease-in-out);}
 tbody tr:hover{background:var(--bg-hover);}
 tbody tr:last-child td{border-bottom:none;}
@@ -376,6 +376,16 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 .mobile-nav-item.active{color:var(--accent);}
 .mobile-nav-item.add-btn{position:relative;top:-16px;background:var(--accent);color:#fff;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,99,235,0.35);border:3px solid var(--bg-base);}
 .mobile-nav-item.add-btn:hover{background:var(--accent-hover);transform:scale(1.05);}
+
+/* FAB - Floating Action Button */
+.fab{position:fixed;bottom:28px;right:28px;z-index:100;background:var(--accent);color:#fff;border:none;border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 20px rgba(37,99,235,0.4);transition:all var(--dur) var(--ease-in-out);padding:0;overflow:hidden;gap:0;}
+.fab:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(37,99,235,0.5);}
+.fab:active{transform:translateY(0);}
+.fab .fab-icon{flex-shrink:0;transition:all var(--dur) var(--ease-in-out);}
+.fab .fab-text{max-width:0;opacity:0;white-space:nowrap;font-size:13px;font-weight:600;transition:all var(--dur) var(--ease-in-out);overflow:hidden;}
+.fab-expanded{width:auto;padding:14px 22px;border-radius:var(--radius);gap:8px;}
+.fab-expanded .fab-text{max-width:120px;opacity:1;}
+@media(max-width:1024px){.fab{bottom:calc(28px + env(safe-area-inset-bottom));right:20px;width:52px;height:52px;}.fab-expanded{width:auto;padding:12px 18px;}}
 .mobile-nav-item.add-btn svg{width:24px;height:24px;}
 .mobile-filters{display:flex;gap:var(--space-2);overflow-x:auto;padding-bottom:var(--space-2);margin-bottom:var(--space-3);-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .mobile-filters::-webkit-scrollbar{display:none;}
@@ -1078,9 +1088,9 @@ auth.onAuthStateChanged(function(user) {
   if (user) {
     showLoading('Loading your dashboard…');
     db.collection('users').doc(user.uid).get().then(function(doc) {
-      if (!doc.exists) { hideLoading(); showScreen('login'); return; }
+      if (!doc.exists) { var fab3 = document.getElementById('fabAdd'); if (fab3) fab3.style.display = 'none'; hideLoading(); showScreen('login'); return; }
       var profile = doc.data();
-      if (profile.status === 'inactive') { auth.signOut(); showToast('Your account has been deactivated. Contact your administrator.', 'error'); hideLoading(); showScreen('login'); return; }
+      if (profile.status === 'inactive') { auth.signOut(); showToast('Your account has been deactivated. Contact your administrator.', 'error'); var fab2 = document.getElementById('fabAdd'); if (fab2) fab2.style.display = 'none'; hideLoading(); showScreen('login'); return; }
       currentUser = user; currentRole = profile.role; currentName = profile.displayName || profile.username; currentUsername = profile.username;
       document.getElementById('whoName').textContent = currentName;
       document.getElementById('whoRole').textContent = currentRole;
@@ -1092,7 +1102,7 @@ auth.onAuthStateChanged(function(user) {
       document.getElementById('mobileAvatar').textContent = initials;
       document.getElementById('mobileProfileAvatar').textContent = initials;
       document.getElementById('usersTabBtn').style.display = (currentRole === 'admin') ? 'flex' : 'none';
-      var fab = document.getElementById('fabAdd'); if (fab) fab.style.display = (currentRole === 'admin') ? 'flex' : 'none';
+      var fab = document.getElementById('fabAdd'); if (fab) { fab.style.display = (currentRole === 'admin') ? 'flex' : 'none'; if (currentRole === 'admin') { expandFab(); startFabAutoCollapse(); } }
       initActivityDate();
       attachPsidListener();
       if (currentRole === 'admin') loadUsersList();
@@ -1101,6 +1111,7 @@ auth.onAuthStateChanged(function(user) {
     });
   } else {
     showLoading('Loading…');
+    var fab = document.getElementById('fabAdd'); if (fab) fab.style.display = 'none';
     if (psidsUnsub) { psidsUnsub(); psidsUnsub = null; }
     db.collection('meta').doc('bootstrap').get().then(function(doc) {
       hideLoading();
@@ -1115,6 +1126,8 @@ function showScreen(which) {
   document.getElementById('bootstrapScreen').style.display = which === 'bootstrap' ? 'flex' : 'none';
   document.getElementById('adminApp').style.display = which === 'admin' ? 'block' : 'none';
   document.getElementById('surveyorApp').style.display = which === 'surveyor' ? 'block' : 'none';
+  var fab = document.getElementById('fabAdd');
+  if (fab && which !== 'admin') fab.style.display = 'none';
 }
 
 function doBootstrap() {
@@ -2104,10 +2117,44 @@ function runImport() {
 </script>
 
 <!-- Admin Floating Add Button -->
-<button class="fab" id="fabAdd" style="display:none;position:fixed;bottom:28px;right:28px;background:var(--accent);color:#fff;font-weight:600;font-size:13px;padding:14px 22px;border-radius:var(--radius);box-shadow:0 4px 20px rgba(37,99,235,0.4);z-index:100;display:flex;align-items:center;gap:8px;border:none;cursor:pointer;transition:all var(--dur) var(--ease-in-out);" onclick="openAddModal()">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  Add PSID
+<button class="fab" id="fabAdd" style="display:none;" onclick="handleFabClick()">
+  <svg class="fab-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  <span class="fab-text">Add PSID</span>
 </button>
+<script>
+/* ---------- FAB Expand/Collapse Logic ---------- */
+var fabExpanded = false;
+var fabAutoCollapseTimer = null;
+function expandFab() {
+  var fab = document.getElementById('fabAdd');
+  if (!fab) return;
+  fab.classList.add('fab-expanded');
+  fabExpanded = true;
+}
+function collapseFab() {
+  var fab = document.getElementById('fabAdd');
+  if (!fab) return;
+  fab.classList.remove('fab-expanded');
+  fabExpanded = false;
+}
+function handleFabClick() {
+  if (window.innerWidth <= 1024) {
+    if (!fabExpanded) { expandFab(); return; }
+  }
+  openAddModal();
+  collapseFab();
+}
+function startFabAutoCollapse() {
+  if (fabAutoCollapseTimer) clearTimeout(fabAutoCollapseTimer);
+  fabAutoCollapseTimer = setTimeout(function() { collapseFab(); }, 3500);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var fab = document.getElementById('fabAdd');
+  if (!fab) return;
+  fab.addEventListener('mouseenter', function() { expandFab(); });
+  fab.addEventListener('mouseleave', function() { collapseFab(); });
+});
+</script>
 
 
 </body>
