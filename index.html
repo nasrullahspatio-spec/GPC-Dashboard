@@ -411,6 +411,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 </style>
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
 
@@ -748,7 +749,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
         <div class="tab-content" id="tab-users">
           <div class="section-header"><h3>Team Accounts</h3><span class="hint">Create a login for each field user</span></div>
           <div class="table-wrap"><div class="table-scroll"><table>
-            <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Added</th></tr></thead>
+            <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Added</th><th></th></tr></thead>
             <tbody id="usersTableBody"></tbody>
           </table></div></div>
 
@@ -901,7 +902,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
       <div class="field"><label>Owner Name</label><input type="text" id="fOwner"></div>
       <div class="field"><label>Contact Number</label><input type="text" id="fContact"></div>
       <div class="field"><label>Date of Assign</label><input type="date" id="fDateAssign"></div>
-      <div class="field"><label>Surveyor Name</label><input type="text" id="fSurveyor" readonly style="opacity:0.75;background:var(--bg-subtle);"><span id="fSurveyorUnlock" style="display:none;text-align:left;margin-top:4px;font-size:12px;"><a style="color:var(--accent);cursor:pointer;font-weight:600;" onclick="unlockSurveyorField()">Correct name (admin)</a></span></div>
+      <div class="field"><label>Surveyor Name</label><select id="fSurveyor"></select></div>
       <div class="field"><label>Survey Status</label><select id="fStatus" onchange="handleStatusChange()"><option value="">— select —</option><option>Done</option><option>Survey pending</option><option>issue convyed</option><option>Already done by another surveyor</option></select></div>
       <div class="field"><label>Parcels Created</label><input type="number" id="fParcels" min="0"></div>
       <div class="field"><label>Survey Completed Date</label><input type="date" id="fDateCompleted"></div>
@@ -986,6 +987,7 @@ var rawData = [], docIds = [], processed = null, charts = {};
 var issuesFilter = 'all', regPage = 1, regPerPage = 50, filteredReg = [];
 var OVERDUE_DAYS = 14;
 var psidsUnsub = null;
+var activeUsersList = [];
 var selectedActivityDate = new Date().toISOString().split('T')[0];
 var surveyorFilter = 'all', surveyorSearch = '';
 
@@ -1112,6 +1114,7 @@ auth.onAuthStateChanged(function(user) {
       document.getElementById('usersTabBtn').style.display = (currentRole === 'admin') ? 'flex' : 'none';
       var fab = document.getElementById('fabAdd'); if (fab) { fab.style.display = (currentRole === 'admin') ? 'flex' : 'none'; if (currentRole === 'admin') { expandFab(); startFabAutoCollapse(); } }
       initActivityDate();
+      loadActiveUsersList();
       attachPsidListener();
       if (currentRole === 'admin') loadUsersList();
       document.getElementById('loadingScreen').style.display = 'none';
@@ -1713,13 +1716,6 @@ function handleStatusChange() {
   document.getElementById('fSurveyRemarksReq').style.display = isIssue ? 'inline' : 'none';
 }
 
-function unlockSurveyorField() {
-  document.getElementById('fSurveyor').readOnly = false;
-  document.getElementById('fSurveyor').style.opacity = '1';
-  document.getElementById('fSurveyor').style.background = '#fff';
-  document.getElementById('fSurveyorUnlock').style.display = 'none';
-}
-
 var psidCheckToken = 0;
 function checkPsidDuplicate() {
   var psid = document.getElementById('fPsid').value.trim();
@@ -1750,10 +1746,7 @@ function openAddModal() {
   document.getElementById('fStatus').value = '';
   document.getElementById('fMethod').value = '';
   document.getElementById('fSurveyRemarksReq').style.display = 'none';
-  document.getElementById('fSurveyor').value = currentName;
-  document.getElementById('fSurveyor').readOnly = true;
-  document.getElementById('fSurveyor').style.opacity = '0.75';
-  document.getElementById('fSurveyorUnlock').style.display = 'none';
+  populateSurveyorDropdown('fSurveyor', currentName);
   document.getElementById('deleteBtn').style.display = 'none';
   document.getElementById('psidModal').style.display = 'flex';
 }
@@ -1779,10 +1772,13 @@ function openEditByDocId(docId) {
   document.getElementById('fCallingRemarks').value = r.callingRemarks || '';
   document.getElementById('fSurveyRemarks').value = r.surveyRemarks || '';
   handleStatusChange();
-  document.getElementById('fSurveyor').value = r.surveyorName || '';
-  document.getElementById('fSurveyor').readOnly = true;
-  document.getElementById('fSurveyor').style.opacity = '0.75';
-  document.getElementById('fSurveyorUnlock').style.display = (currentRole === 'admin') ? 'block' : 'none';
+  populateSurveyorDropdown('fSurveyor', r.surveyorName || '');
+  if (r.surveyorName && activeUsersList.every(function(u){ return u.name !== r.surveyorName; })) {
+    var opt = document.createElement('option');
+    opt.value = r.surveyorName; opt.textContent = r.surveyorName + ' (inactive/removed)';
+    document.getElementById('fSurveyor').appendChild(opt);
+    document.getElementById('fSurveyor').value = r.surveyorName;
+  }
   document.getElementById('deleteBtn').style.display = (currentRole === 'admin') ? 'inline-flex' : 'none';
   document.getElementById('psidModal').style.display = 'flex';
 }
@@ -2048,13 +2044,62 @@ function saveMobileEdit() {
    ============================================================ */
 function loadUsersList() {
   db.collection('users').orderBy('createdAt', 'asc').get().then(function(snap) {
-    var html = ''; snap.forEach(function(doc) {
+    var html = '';
+    snap.forEach(function(doc) {
       var u = doc.data();
       var when = u.createdAt && u.createdAt.toDate ? u.createdAt.toDate().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-      html += '<tr><td style="font-weight:600;">' + esc(u.displayName || '—') + '</td><td class="mono">' + esc(u.username || '—') + '</td><td><span class="role-badge ' + (u.role === 'admin' ? 'admin' : 'field') + '">' + esc(u.role || 'field') + '</span></td><td>' + when + '</td></tr>';
+      var isActive = u.status !== 'inactive';
+      var statusBadge = isActive ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Disabled</span>';
+      var isSelf = currentUser && doc.id === currentUser.uid;
+      var actionCell = isSelf
+        ? '<span style="font-size:12px;color:var(--text-muted);">(you)</span>'
+        : '<button class="btn secondary" style="padding:6px 12px;font-size:12px;" onclick="toggleUserStatus(\'' + doc.id + '\', ' + isActive + ')">' + (isActive ? 'Disable' : 'Enable') + '</button>';
+      html += '<tr><td style="font-weight:600;">' + esc(u.displayName || '—') + '</td><td class="mono">' + esc(u.username || '—') + '</td><td><span class="role-badge ' + (u.role === 'admin' ? 'admin' : 'field') + '">' + esc(u.role || 'field') + '</span></td><td>' + statusBadge + '</td><td>' + when + '</td><td>' + actionCell + '</td></tr>';
     });
     document.getElementById('usersTableBody').innerHTML = html;
   }).catch(function(err) { console.error(err); });
+}
+
+function toggleUserStatus(uid, currentlyActive) {
+  var newStatus = currentlyActive ? 'inactive' : 'active';
+  showConfirm(
+    currentlyActive ? 'Disable Account' : 'Enable Account',
+    currentlyActive
+      ? 'This surveyor will be signed out immediately and blocked from logging back in. Their existing PSID records stay in the register untouched.'
+      : 'This restores login access for this account.',
+    function() {
+      db.collection('users').doc(uid).update({ status: newStatus }).then(function() {
+        showToast('Account ' + (currentlyActive ? 'disabled' : 'enabled') + '.', 'success');
+        loadUsersList();
+        loadActiveUsersList();
+      }).catch(function(err) { showToast('Failed: ' + err.message, 'error'); });
+    }
+  );
+}
+
+function loadActiveUsersList() {
+  db.collection('users').get().then(function(snap) {
+    activeUsersList = [];
+    snap.forEach(function(doc) {
+      var u = doc.data();
+      if (u.status !== 'inactive') {
+        activeUsersList.push({ uid: doc.id, name: u.displayName || u.username, role: u.role });
+      }
+    });
+    activeUsersList.sort(function(a, b) { return a.name.localeCompare(b.name); });
+  }).catch(function(err) { console.warn('Could not load active users list:', err); });
+}
+
+function populateSurveyorDropdown(selectId, preselectName) {
+  var sel = document.getElementById(selectId);
+  var html = '';
+  for (var i = 0; i < activeUsersList.length; i++) {
+    var u = activeUsersList[i];
+    var label = (u.name === currentName) ? u.name + ' (Myself)' : u.name;
+    html += '<option value="' + esc(u.name) + '">' + esc(label) + '</option>';
+  }
+  sel.innerHTML = html;
+  sel.value = preselectName || currentName;
 }
 
 function createTeamMember() {
