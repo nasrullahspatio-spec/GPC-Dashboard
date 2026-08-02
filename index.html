@@ -422,8 +422,10 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 .login-feature svg{width:22px;height:22px;color:#a7f3d0;flex-shrink:0;margin-top:2px;}
 .login-feature div h4{font-size:13px;font-weight:600;color:#fff;margin-bottom:2px;}
 .login-feature div p{font-size:12px;color:rgba(255,255,255,0.75);line-height:1.4;}
-.login-partners{display:flex;align-items:center;gap:var(--space-4);background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);padding:var(--space-3) var(--space-4);border-radius:var(--radius);border:1px solid rgba(255,255,255,0.15);}
+.login-partners{display:flex;align-items:center;gap:var(--space-4);background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);padding:var(--space-3) var(--space-4);border-radius:var(--radius);border:1px solid rgba(255,255,255,0.15);width:fit-content;}
 .login-partners img{height:32px;filter:brightness(0) invert(1);opacity:0.9;}
+.login-partners span{font-size:12px;font-weight:700;color:#fff;letter-spacing:0.04em;text-transform:uppercase;opacity:0.95;white-space:nowrap;}
+.login-partners span:not(:last-child){padding-right:var(--space-4);border-right:1px solid rgba(255,255,255,0.3);}
 .login-right{flex:1;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:var(--space-6);overflow-y:auto;}
 .login-card{width:100%;max-width:420px;background:#ffffff;border:1px solid #e2e8f0;border-radius:var(--radius-lg);padding:var(--space-8);box-shadow:var(--shadow-xl);animation:scaleIn var(--dur-slow) var(--ease-out);}
 .login-card .auth-brand{margin-bottom:var(--space-6);}
@@ -475,7 +477,17 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 
 <!-- LOGIN -->
 <div class="login-split" id="loginScreen">
-  <div class="login-left"></div>
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="login-brand-icon">GPC</div>
+      <div class="login-brand-text"><h1>Green Property Certificate</h1><p>Field Survey Data Manager</p></div>
+    </div>
+    <div class="login-partners">
+      <span>Pulse</span>
+      <span>PLRA</span>
+      <span>The Spatio</span>
+    </div>
+  </div>
   <div class="login-right">
     <div class="login-card">
       <div class="auth-brand">
@@ -495,7 +507,17 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 
 <!-- BOOTSTRAP -->
 <div class="login-split" id="bootstrapScreen">
-  <div class="login-left"></div>
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="login-brand-icon">GPC</div>
+      <div class="login-brand-text"><h1>Green Property Certificate</h1><p>Field Survey Data Manager</p></div>
+    </div>
+    <div class="login-partners">
+      <span>Pulse</span>
+      <span>PLRA</span>
+      <span>The Spatio</span>
+    </div>
+  </div>
   <div class="login-right">
     <div class="login-card">
       <div class="auth-brand">
