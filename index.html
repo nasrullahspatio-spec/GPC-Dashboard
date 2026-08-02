@@ -1599,7 +1599,7 @@ function renderIssues() {
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i];
     var stamp = r.status === 'done' ? '<span class="badge badge-success">Done</span>' : r.status === 'issue' ? '<span class="badge badge-danger">Issue</span>' : r.status === 'other_surveyor' ? '<span class="badge badge-info">Other Surveyor</span>' : '<span class="badge badge-warning">Pending</span>';
-    html += '<tr><td class="mono" style="font-weight:600;">' + esc(r.psid || '—') + '</td><td>' + esc(r.district || '—') + '</td><td>' + esc(r.surveyorName || '—') + '</td><td>' + stamp + '</td><td>' + r.type + '</td><td class="italic-remark">' + esc(r.remark || '—') + '</td><td><button class="btn small secondary" onclick="openEditByDocId(\'" + r.docId + "\')">Edit</button></td></tr>';
+    html += '<tr><td class="mono" style="font-weight:600;">' + esc(r.psid || '—') + '</td><td>' + esc(r.district || '—') + '</td><td>' + esc(r.surveyorName || '—') + '</td><td>' + stamp + '</td><td>' + r.type + '</td><td class="italic-remark">' + esc(r.remark || '—') + '</td><td><button class="btn small secondary" data-doc-id="' + esc(r.docId) + '">Edit</button></td></tr>';
   }
   tbody.innerHTML = html;
 }
@@ -1639,7 +1639,7 @@ function renderRegister() {
   for (var i = 0; i < pageData.length; i++) {
     var r = pageData[i].r, docId = docIds[pageData[i].idx];
     var overdueTag = isOverdue(r) ? ' <span class="overdue-flag">⚑ overdue</span>' : '';
-    html += '<tr><td class="mono" style="font-weight:600;">' + esc(r.psid || '—') + '</td><td>' + esc(r.district || '—') + '</td><td>' + esc(r.tehsil || '—') + '</td><td>' + esc(r.mouza || '—') + '</td><td class="mono">' + esc(r.khasraNumber || '—') + '</td><td>' + esc(r.ownerName || '—') + '</td><td>' + esc(r.surveyorName || '—') + '</td><td>' + statusStamp(r) + '</td><td>' + (r.numberOfParcelsCreated || '0') + '</td><td>' + esc(r.surveyedByDgpsOrMobile || '—') + '</td><td>' + daysOpenLabel(r) + overdueTag + '</td><td class="italic-remark" title="' + esc(r.surveyRemarks || '') + '">' + esc(r.surveyRemarks || '—') + '</td><td><button class="btn small secondary" onclick="openEditByDocId(\'" + docId + "\')">Edit</button></td></tr>';
+    html += '<tr><td class="mono" style="font-weight:600;">' + esc(r.psid || '—') + '</td><td>' + esc(r.district || '—') + '</td><td>' + esc(r.tehsil || '—') + '</td><td>' + esc(r.mouza || '—') + '</td><td class="mono">' + esc(r.khasraNumber || '—') + '</td><td>' + esc(r.ownerName || '—') + '</td><td>' + esc(r.surveyorName || '—') + '</td><td>' + statusStamp(r) + '</td><td>' + (r.numberOfParcelsCreated || '0') + '</td><td>' + esc(r.surveyedByDgpsOrMobile || '—') + '</td><td>' + daysOpenLabel(r) + overdueTag + '</td><td class="italic-remark" title="' + esc(r.surveyRemarks || '') + '">' + esc(r.surveyRemarks || '—') + '</td><td><button class="btn small secondary" data-doc-id="' + esc(docId) + '">Edit</button></td></tr>';
   }
   tbody.innerHTML = html;
 
@@ -1752,7 +1752,12 @@ function openAddModal() {
 }
 
 function openEditByDocId(docId) {
-  var idx = docIds.indexOf(docId); if (idx === -1) return;
+  var idx = docIds.indexOf(docId);
+  if (idx === -1) {
+    showToast('Record not found. It may have been deleted or the list is still loading.', 'error');
+    console.error('openEditByDocId: docId not found:', docId);
+    return;
+  }
   var r = rawData[idx];
   document.getElementById('modalTitle').textContent = 'Edit PSID Record';
   document.getElementById('editDocId').value = docId;
@@ -1994,7 +1999,12 @@ function clearMobileForm() {
 
 /* Mobile Edit */
 function openMobileEdit(docId) {
-  var idx = docIds.indexOf(docId); if (idx === -1) return;
+  var idx = docIds.indexOf(docId);
+  if (idx === -1) {
+    showToast('Record not found. It may have been deleted or the list is still loading.', 'error');
+    console.error('openMobileEdit: docId not found:', docId);
+    return;
+  }
   var r = rawData[idx];
   if (safeStr(r.surveyorName) !== currentName && currentRole !== 'admin') { showToast('You can only edit your own records.', 'error'); return; }
   document.getElementById('mobileEditDocId').value = docId;
@@ -2225,6 +2235,20 @@ document.addEventListener('DOMContentLoaded', function() {
   digitsOnly(document.getElementById('sfPsid'));
   phoneOnly(document.getElementById('fContact'));
   phoneOnly(document.getElementById('sfContact'));
+
+  // --- Delegated edit buttons for Register & Issues tables ---
+  function attachTableEditDelegation(tbodyId) {
+    var tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    tbody.addEventListener('click', function(e) {
+      var btn = e.target.closest('button[data-doc-id]');
+      if (!btn) return;
+      var docId = btn.getAttribute('data-doc-id');
+      if (docId) openEditByDocId(docId);
+    });
+  }
+  attachTableEditDelegation('regTableBody');
+  attachTableEditDelegation('issuesTableBody');
 });
 </script>
 
