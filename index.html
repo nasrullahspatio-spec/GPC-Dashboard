@@ -139,6 +139,8 @@ html,body{height:100%;font-family:var(--font-sans);color:var(--text-primary);bac
 .sidebar.collapsed .sidebar-brand{padding:20px 10px 16px;display:flex;justify-content:center;}
 .sidebar-toggle{position:absolute;top:18px;right:-12px;width:24px;height:24px;background:var(--bg-surface);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow-sm);font-size:12px;color:var(--text-tertiary);z-index:51;transition:all var(--dur-fast) var(--ease-in-out);}
 .sidebar-toggle:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.sidebar-close-mobile{display:none;}
+@media(max-width:1024px){.sidebar-close-mobile{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-subtle);color:var(--text-secondary);font-size:14px;cursor:pointer;margin-left:auto;transition:all var(--dur-fast) var(--ease-in-out);}.sidebar-close-mobile:hover{background:var(--bg-hover);color:var(--text-primary);}}
 .main-area{flex:1;margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column;transition:margin-left var(--dur) var(--ease-in-out);}
 .main-area.sidebar-collapsed{margin-left:64px;}
 .sidebar-brand{padding:var(--space-5) var(--space-5) var(--space-4);border-bottom:1px solid var(--border);}
@@ -247,8 +249,8 @@ html,body{height:100%;font-family:var(--font-sans);color:var(--text-primary);bac
 .folio-fill{height:100%;background:linear-gradient(90deg,var(--success),#34d399);border-radius:3px;transition:width .8s var(--ease-out);}
 
 .table-wrap{border:1px solid var(--border);background:var(--bg-surface);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);}
-.table-scroll{max-height:60vh;overflow:auto;}
-table{width:100%;border-collapse:collapse;font-size:13px;}
+.table-scroll{max-height:60vh;overflow:auto;-webkit-overflow-scrolling:touch;}
+table{width:auto;min-width:100%;border-collapse:collapse;font-size:13px;}
 thead th{position:sticky;top:0;background:var(--bg-subtle);text-align:left;padding:12px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-tertiary);border-bottom:1px solid var(--border);z-index:2;white-space:nowrap;}
 tbody td{padding:12px 16px;border-bottom:1px solid var(--border);color:var(--text-secondary);vertical-align:middle;transition:background var(--dur-fast) var(--ease-in-out);}
 tbody tr{transition:background var(--dur-fast) var(--ease-in-out);}
@@ -368,7 +370,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 .mobile-card-body .row b{color:var(--text-primary);font-weight:500;}
 .mobile-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-3);padding-top:var(--space-2);border-top:1px solid var(--border);}
 .mobile-card-footer .meta{font-size:12px;color:var(--text-tertiary);}
-.mobile-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg-surface);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:var(--space-2) 0 calc(var(--space-2) + env(safe-area-inset-bottom));z-index:50;box-shadow:0 -4px 20px rgba(0,0,0,0.04);}
+.mobile-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg-surface);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:flex-end;padding:var(--space-2) 0 calc(var(--space-2) + env(safe-area-inset-bottom));z-index:50;box-shadow:0 -4px 20px rgba(0,0,0,0.04);}
 .mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:var(--space-1) var(--space-3);color:var(--text-tertiary);font-size:10px;font-weight:600;border:none;background:none;cursor:pointer;transition:color var(--dur-fast) var(--ease-in-out);font-family:inherit;}
 .mobile-nav-item svg{width:22px;height:22px;stroke-width:2;}
 .mobile-nav-item.active{color:var(--accent);}
@@ -389,6 +391,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 .mobile-profile-card h3{font-size:18px;font-weight:700;margin-bottom:4px;}
 .mobile-profile-card p{font-size:14px;color:var(--text-tertiary);margin-bottom:var(--space-6);}
 </style>
+<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -455,8 +458,8 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
         <div class="logo-row">
           <div class="logo-icon">GPC</div>
           <div class="logo-text"><h2>Field Survey</h2><p>Lahore Division</p></div>
+          <button class="sidebar-close-mobile" onclick="toggleSidebar()" aria-label="Close sidebar">✕</button>
         </div>
-        
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">Dashboard</div>
@@ -1032,6 +1035,18 @@ function hideConfirm() {
 }
 
 /* ============================================================
+   LOADING HELPERS
+   ============================================================ */
+function showLoading(msg) {
+  var el = document.getElementById('loadingScreen');
+  if (msg) { el.querySelector('p').textContent = msg; }
+  el.style.display = 'flex';
+}
+function hideLoading() {
+  document.getElementById('loadingScreen').style.display = 'none';
+}
+
+/* ============================================================
    ANIMATED NUMBERS
    ============================================================ */
 function animateNumber(el, target, suffix) {
@@ -1061,10 +1076,11 @@ auth.onAuthStateChanged(function(user) {
     document.querySelector('.main-area').classList.add('sidebar-collapsed');
   }
   if (user) {
+    showLoading('Loading your dashboard…');
     db.collection('users').doc(user.uid).get().then(function(doc) {
-      if (!doc.exists) { showScreen('login'); document.getElementById('loadingScreen').style.display = 'none'; return; }
+      if (!doc.exists) { hideLoading(); showScreen('login'); return; }
       var profile = doc.data();
-      if (profile.status === 'inactive') { auth.signOut(); showToast('Your account has been deactivated. Contact your administrator.', 'error'); document.getElementById('loadingScreen').style.display = 'none'; showScreen('login'); return; }
+      if (profile.status === 'inactive') { auth.signOut(); showToast('Your account has been deactivated. Contact your administrator.', 'error'); hideLoading(); showScreen('login'); return; }
       currentUser = user; currentRole = profile.role; currentName = profile.displayName || profile.username; currentUsername = profile.username;
       document.getElementById('whoName').textContent = currentName;
       document.getElementById('whoRole').textContent = currentRole;
@@ -1076,6 +1092,7 @@ auth.onAuthStateChanged(function(user) {
       document.getElementById('mobileAvatar').textContent = initials;
       document.getElementById('mobileProfileAvatar').textContent = initials;
       document.getElementById('usersTabBtn').style.display = (currentRole === 'admin') ? 'flex' : 'none';
+      var fab = document.getElementById('fabAdd'); if (fab) fab.style.display = (currentRole === 'admin') ? 'flex' : 'none';
       initActivityDate();
       attachPsidListener();
       if (currentRole === 'admin') loadUsersList();
@@ -1083,12 +1100,13 @@ auth.onAuthStateChanged(function(user) {
       showScreen(currentRole === 'admin' ? 'admin' : 'surveyor');
     });
   } else {
+    showLoading('Loading…');
     if (psidsUnsub) { psidsUnsub(); psidsUnsub = null; }
     db.collection('meta').doc('bootstrap').get().then(function(doc) {
-      document.getElementById('loadingScreen').style.display = 'none';
+      hideLoading();
       if (doc.exists && doc.data().completed) { showScreen('login'); }
       else { showScreen('bootstrap'); }
-    }).catch(function() { document.getElementById('loadingScreen').style.display = 'none'; showScreen('login'); });
+    }).catch(function() { hideLoading(); showScreen('login'); });
   }
 });
 
@@ -1107,11 +1125,12 @@ function doBootstrap() {
   errEl.style.display = 'none';
   if (!name || !username || !pin) { errEl.textContent = 'Fill in all fields.'; errEl.style.display = 'block'; return; }
   if (pin.length < 6) { errEl.textContent = 'PIN must be at least 6 characters.'; errEl.style.display = 'block'; return; }
+  showLoading('Creating account…');
   auth.createUserWithEmailAndPassword(usernameToEmail(username), pin).then(function(cred) {
     return db.collection('users').doc(cred.user.uid).set({
       username: safeLower(username), displayName: name, role: 'admin', createdAt: firebase.firestore.FieldValue.serverTimestamp()
     }).then(function() { return db.collection('meta').doc('bootstrap').set({completed: true}); });
-  }).catch(function(err) { errEl.textContent = err.message; errEl.style.display = 'block'; });
+  }).catch(function(err) { hideLoading(); errEl.textContent = err.message; errEl.style.display = 'block'; });
 }
 
 function doLogin() {
@@ -1120,14 +1139,16 @@ function doLogin() {
   var errEl = document.getElementById('loginError');
   errEl.style.display = 'none';
   if (!username || !pin) { errEl.textContent = 'Enter your username and PIN.'; errEl.style.display = 'block'; return; }
+  showLoading('Signing in…');
   auth.signInWithEmailAndPassword(usernameToEmail(username), pin).catch(function(err) {
+    hideLoading();
     errEl.textContent = (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found')
       ? 'Username or PIN is incorrect.' : err.message;
     errEl.style.display = 'block';
   });
 }
 
-function doLogout() { auth.signOut(); }
+function doLogout() { showLoading('Signing out…'); auth.signOut(); }
 
 /* ============================================================
    UTILITIES
@@ -2083,17 +2104,11 @@ function runImport() {
 </script>
 
 <!-- Admin Floating Add Button -->
-<button class="fab" id="fabAdd" style="display:none;position:fixed;bottom:28px;right:28px;background:var(--accent);color:#fff;font-weight:600;font-size:13px;padding:14px 22px;border-radius:var(--radius);box-shadow:0 4px 20px rgba(37,99,235,0.4);z-index:30;display:flex;align-items:center;gap:8px;border:none;cursor:pointer;transition:all var(--dur) var(--ease-in-out);" onclick="openAddModal()">
+<button class="fab" id="fabAdd" style="display:none;position:fixed;bottom:28px;right:28px;background:var(--accent);color:#fff;font-weight:600;font-size:13px;padding:14px 22px;border-radius:var(--radius);box-shadow:0 4px 20px rgba(37,99,235,0.4);z-index:100;display:flex;align-items:center;gap:8px;border:none;cursor:pointer;transition:all var(--dur) var(--ease-in-out);" onclick="openAddModal()">
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
   Add PSID
 </button>
-<script>
-auth.onAuthStateChanged(function(user) {
-  var fab = document.getElementById('fabAdd');
-  if (user && currentRole === 'admin') { fab.style.display = 'flex'; }
-  else { fab.style.display = 'none'; }
-});
-</script>
+
 
 </body>
 </html>
