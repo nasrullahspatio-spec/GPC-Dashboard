@@ -425,12 +425,18 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 .login-partners{display:flex;align-items:center;gap:var(--space-4);background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);padding:var(--space-3) var(--space-4);border-radius:var(--radius);border:1px solid rgba(255,255,255,0.15);}
 .login-partners img{height:32px;filter:brightness(0) invert(1);opacity:0.9;}
 .login-right{flex:1;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:var(--space-6);overflow-y:auto;}
-.login-card{width:100%;max-width:420px;background:rgba(255,255,255,0.97);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-8);box-shadow:var(--shadow-xl);animation:scaleIn var(--dur-slow) var(--ease-out);}
+.login-card{width:100%;max-width:420px;background:#ffffff;border:1px solid #e2e8f0;border-radius:var(--radius-lg);padding:var(--space-8);box-shadow:var(--shadow-xl);animation:scaleIn var(--dur-slow) var(--ease-out);}
 .login-card .auth-brand{margin-bottom:var(--space-6);}
-.login-card .auth-brand-text h1{font-size:18px;}
-.login-card .auth-brand-text p{font-size:13px;}
+.login-card .auth-brand-text h1{font-size:18px;color:#0f172a;}
+.login-card .auth-brand-text p{font-size:13px;color:#64748b;}
 .login-card .auth-logo{width:40px;height:40px;}
-.login-card .field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+.login-card .auth-eyebrow{color:#16a34a;}
+.login-card h2{color:#0f172a;}
+.login-card .sub{color:#475569;}
+.login-card .field label{color:#334155;}
+.login-card .field input{background:#f8fafc;border:1px solid #e2e8f0;color:#0f172a;}
+.login-card .field input::placeholder{color:#94a3b8;}
+.login-card .field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);background:#fff;}
 .login-card .btn{background:var(--accent);}
 .login-card .btn:hover{background:var(--accent-hover);}
 .login-card .auth-switch a{color:var(--accent);}
@@ -469,38 +475,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 
 <!-- LOGIN -->
 <div class="login-split" id="loginScreen">
-  <div class="login-left">
-    <div class="login-brand">
-      <div class="login-brand-icon">GPC</div>
-      <div class="login-brand-text"><h1>Green Property Certificate</h1><p>Survey Data Management</p></div>
-    </div>
-    <div class="login-features">
-      <div class="login-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-        <div><h4>Centralized Records</h4><p>Store all survey data in one secure place</p></div>
-      </div>
-      <div class="login-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        <div><h4>Real-time Progress</h4><p>Track field progress and team performance</p></div>
-      </div>
-      <div class="login-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-        <div><h4>Advanced Insights</h4><p>Visualize data and generate meaningful reports</p></div>
-      </div>
-      <div class="login-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <div><h4>Data Security</h4><p>Role-based access and secure data management</p></div>
-      </div>
-    </div>
-    <div class="login-partners">
-      <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.05em;">Powered by</span>
-      <span style="font-size:13px;font-weight:700;color:#fff;">PULSE</span>
-      <span style="color:rgba(255,255,255,0.4);">|</span>
-      <span style="font-size:13px;font-weight:700;color:#fff;">PLRA</span>
-      <span style="color:rgba(255,255,255,0.4);">|</span>
-      <span style="font-size:13px;font-weight:700;color:#fff;">GPC</span>
-    </div>
-  </div>
+  <div class="login-left"></div>
   <div class="login-right">
     <div class="login-card">
       <div class="auth-brand">
@@ -520,38 +495,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 
 <!-- BOOTSTRAP -->
 <div class="login-split" id="bootstrapScreen">
-  <div class="login-left">
-    <div class="login-brand">
-      <div class="login-brand-icon">GPC</div>
-      <div class="login-brand-text"><h1>Green Property Certificate</h1><p>Survey Data Management</p></div>
-    </div>
-    <div class="login-features">
-      <div class="login-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-        <div><h4>Centralized Records</h4><p>Store all survey data in one secure place</p></div>
-      </div>
-      <div class="login-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        <div><h4>Real-time Progress</h4><p>Track field progress and team performance</p></div>
-      </div>
-      <div class="login-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-        <div><h4>Advanced Insights</h4><p>Visualize data and generate meaningful reports</p></div>
-      </div>
-      <div class="login-feature">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <div><h4>Data Security</h4><p>Role-based access and secure data management</p></div>
-      </div>
-    </div>
-    <div class="login-partners">
-      <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.05em;">Powered by</span>
-      <span style="font-size:13px;font-weight:700;color:#fff;">PULSE</span>
-      <span style="color:rgba(255,255,255,0.4);">|</span>
-      <span style="font-size:13px;font-weight:700;color:#fff;">PLRA</span>
-      <span style="color:rgba(255,255,255,0.4);">|</span>
-      <span style="font-size:13px;font-weight:700;color:#fff;">GPC</span>
-    </div>
-  </div>
+  <div class="login-left"></div>
   <div class="login-right">
     <div class="login-card">
       <div class="auth-brand">
