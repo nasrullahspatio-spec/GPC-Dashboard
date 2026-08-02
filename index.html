@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#2563eb">
+<meta name="theme-color" content="#1a5c2a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="GPC Survey">
@@ -22,7 +22,7 @@
   --bg-base:#f1f5f9; --bg-surface:#ffffff; --bg-elevated:#ffffff; --bg-hover:#f8fafc; --bg-subtle:#f8fafc; --bg-pressed:#f1f5f9;
   --border:#e2e8f0; --border-strong:#cbd5e1; --border-focus:#94a3b8;
   --text-primary:#0f172a; --text-secondary:#475569; --text-tertiary:#64748b; --text-muted:#94a3b8; --text-inverse:#ffffff;
-  --accent:#2563eb; --accent-hover:#1d4ed8; --accent-light:#eff6ff; --accent-glow:rgba(37,99,235,0.12);
+  --accent:#1a5c2a; --accent-hover:#144a20; --accent-light:#ecfdf5; --accent-glow:rgba(26,92,42,0.12);
   --success:#059669; --success-bg:#ecfdf5; --warning:#d97706; --warning-bg:#fffbeb;
   --danger:#dc2626; --danger-bg:#fef2f2; --info:#0891b2; --info-bg:#ecfeff;
   --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px; --space-8:32px; --space-10:40px; --space-12:48px;
@@ -87,7 +87,7 @@ html,body{height:100%;font-family:var(--font-sans);color:var(--text-primary);bac
 .auth-wrap{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:90;padding:var(--space-5);background:var(--bg-base);}
 .auth-card{width:100%;max-width:420px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-8);box-shadow:var(--shadow-xl);animation:scaleIn var(--dur-slow) var(--ease-out);}
 .auth-brand{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-6);}
-.auth-logo{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),#4f46e5);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;letter-spacing:0.02em;box-shadow:0 4px 12px rgba(37,99,235,0.25);}
+.auth-logo{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),#2d7a3e);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;letter-spacing:0.02em;box-shadow:0 4px 12px rgba(37,99,235,0.25);}
 .auth-brand-text h1{font-size:20px;font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
 .auth-brand-text p{font-size:13px;color:var(--text-tertiary);margin-top:2px;}
 .auth-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:var(--space-2);font-weight:600;}
@@ -153,7 +153,7 @@ html,body{height:100%;font-family:var(--font-sans);color:var(--text-primary);bac
 .main-area.sidebar-collapsed{margin-left:64px;}
 .sidebar-brand{padding:var(--space-5) var(--space-5) var(--space-4);border-bottom:1px solid var(--border);}
 .logo-row{display:flex;align-items:center;gap:var(--space-3);}
-.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),#4f46e5);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(37,99,235,0.2);}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),#2d7a3e);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(37,99,235,0.2);}
 .logo-text h2{font-size:15px;font-weight:700;line-height:1.3;letter-spacing:-0.01em;}
 .logo-text p{font-size:12px;color:var(--text-tertiary);margin-top:1px;}
 .sidebar-nav{flex:1;padding:var(--space-3);overflow-y:auto;}
@@ -308,7 +308,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 [data-theme="dark"]{--bg-base:#0b1120;--bg-surface:#111827;--bg-elevated:#1a2332;--bg-hover:rgba(59,130,246,0.06);--bg-subtle:#1a2332;--bg-pressed:#243044;
 --border:rgba(148,163,184,0.12);--border-strong:rgba(148,163,184,0.22);--border-focus:#475569;
 --text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-tertiary:#64748b;--text-muted:#475569;--text-inverse:#0f172a;
---accent:#3b82f6;--accent-hover:#2563eb;--accent-light:rgba(59,130,246,0.15);--accent-glow:rgba(59,130,246,0.2);
+--accent:#22c55e;--accent-hover:#16a34a;--accent-light:rgba(34,197,94,0.15);--accent-glow:rgba(34,197,94,0.2);
 --success:#22c55e;--success-bg:rgba(34,197,94,0.12);--warning:#f59e0b;--warning-bg:rgba(245,158,11,0.12);
 --danger:#ef4444;--danger-bg:rgba(239,68,68,0.12);--info:#06b6d4;--info-bg:rgba(6,182,212,0.12);
 --shadow-sm:0 1px 2px 0 rgb(0 0 0 / 0.2);--shadow:0 1px 3px 0 rgb(0 0 0 / 0.3),0 1px 2px -1px rgb(0 0 0 / 0.3);
@@ -318,8 +318,8 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 [data-theme="dark"] .sidebar{background:#111827;border-color:rgba(148,163,184,0.12);}
 [data-theme="dark"] .topbar{background:#111827;border-color:rgba(148,163,184,0.12);}
 [data-theme="dark"] .kpi-card,[data-theme="dark"] .chart-card,[data-theme="dark"] .folio,[data-theme="dark"] .table-wrap,[data-theme="dark"] .mobile-card,[data-theme="dark"] .mobile-stat,[data-theme="dark"] .mobile-profile-card,[data-theme="dark"] .daily-stat-card,[data-theme="dark"] .card,[data-theme="dark"] .filter-bar,[data-theme="dark"] .import-box,[data-theme="dark"] .date-picker-card{background:#1a2332;border-color:rgba(148,163,184,0.12);}
-[data-theme="dark"] .nav-item.active{background:rgba(59,130,246,0.15);}
-[data-theme="dark"] .nav-item:hover{background:rgba(59,130,246,0.08);}
+[data-theme="dark"] .nav-item.active{background:rgba(34,197,94,0.15);}
+[data-theme="dark"] .nav-item:hover{background:rgba(34,197,94,0.08);}
 [data-theme="dark"] thead th{background:#243044;border-color:rgba(148,163,184,0.12);}
 [data-theme="dark"] tbody tr:hover{background:rgba(59,130,246,0.06);}
 [data-theme="dark"] .ipt,[data-theme="dark"] select.ipt,[data-theme="dark"] .field input,[data-theme="dark"] .field select,[data-theme="dark"] .field textarea,[data-theme="dark"] .mobile-form .field input,[data-theme="dark"] .mobile-form .field select,[data-theme="dark"] .mobile-form .field textarea{background:#111827;border-color:rgba(148,163,184,0.2);color:var(--text-primary);}
@@ -341,8 +341,8 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 [data-theme="dark"] .pg-btn.active{background:var(--accent);}
 [data-theme="dark"] .sidebar-collapse-btn,[data-theme="dark"] .mobile-menu-btn{background:#1a2332;border-color:rgba(148,163,184,0.2);color:var(--text-secondary);}
 [data-theme="dark"] .chip{background:#1a2332;border-color:rgba(148,163,184,0.2);}
-[data-theme="dark"] .chip.active{background:rgba(59,130,246,0.15);}
-[data-theme="dark"] .date-today-btn{background:rgba(59,130,246,0.15);}
+[data-theme="dark"] .chip.active{background:rgba(34,197,94,0.15);}
+[data-theme="dark"] .date-today-btn{background:rgba(34,197,94,0.15);}
 [data-theme="dark"] .date-nav-btn{background:#1a2332;border-color:rgba(148,163,184,0.2);}
 .logo-loader{width:140px;height:140px;display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:20px;}
 .logo-loader img{width:120px;height:120px;object-fit:contain;position:relative;z-index:2;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.08));animation:logoPulse 2s ease-in-out infinite;}
@@ -354,7 +354,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 #surveyorApp{display:none;min-height:100vh;background:var(--bg-base);padding-bottom:80px;}
 .mobile-header{background:var(--bg-surface);border-bottom:1px solid var(--border);padding:var(--space-4) var(--space-4);position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;}
 .mobile-header .brand{display:flex;align-items:center;gap:var(--space-2);}
-.mobile-header .brand-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),#4f46e5);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;}
+.mobile-header .brand-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),#2d7a3e);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;}
 .mobile-header .brand-text{font-size:15px;font-weight:700;letter-spacing:-0.01em;}
 .mobile-header .user-pill{display:flex;align-items:center;gap:var(--space-2);padding:6px 12px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:600;color:var(--text-secondary);}
 .mobile-header .user-pill .avatar{width:24px;height:24px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
@@ -405,9 +405,43 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 .mobile-form .field input:focus,.mobile-form .field select:focus,.mobile-form .field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
 .mobile-form .btn.block{margin-top:var(--space-2);}
 .mobile-profile-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-6);text-align:center;box-shadow:var(--shadow-sm);}
-.mobile-profile-card .avatar-lg{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent-light),#e0e7ff);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--accent);margin:0 auto var(--space-4);border:3px solid var(--border);}
+.mobile-profile-card .avatar-lg{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent-light),#dcfce7);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--accent);margin:0 auto var(--space-4);border:3px solid var(--border);}
 .mobile-profile-card h3{font-size:18px;font-weight:700;margin-bottom:4px;}
 .mobile-profile-card p{font-size:14px;color:var(--text-tertiary);margin-bottom:var(--space-6);}
+
+/* Split Login Layout */
+.login-split{position:fixed;inset:0;display:flex;z-index:90;}
+.login-left{flex:1.2;background:url('./login-bg.png') center/cover no-repeat;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:var(--space-8);}
+.login-left::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(26,92,42,0.15) 0%,rgba(26,92,42,0.55) 100%);}
+.login-left > *{position:relative;z-index:1;}
+.login-brand{display:flex;align-items:center;gap:var(--space-3);}
+.login-brand-icon{width:48px;height:48px;background:linear-gradient(135deg,#1a5c2a,#2d7a3e);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.2);}
+.login-brand-text h1{font-size:22px;font-weight:700;color:#fff;letter-spacing:-0.02em;text-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.login-brand-text p{font-size:14px;color:rgba(255,255,255,0.85);margin-top:2px;text-shadow:0 1px 4px rgba(0,0,0,0.3);}
+.login-features{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-5);max-width:420px;}
+.login-feature{display:flex;align-items:flex-start;gap:var(--space-3);}
+.login-feature svg{width:22px;height:22px;color:#a7f3d0;flex-shrink:0;margin-top:2px;}
+.login-feature div h4{font-size:13px;font-weight:600;color:#fff;margin-bottom:2px;}
+.login-feature div p{font-size:12px;color:rgba(255,255,255,0.75);line-height:1.4;}
+.login-partners{display:flex;align-items:center;gap:var(--space-4);background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);padding:var(--space-3) var(--space-4);border-radius:var(--radius);border:1px solid rgba(255,255,255,0.15);}
+.login-partners img{height:32px;filter:brightness(0) invert(1);opacity:0.9;}
+.login-right{flex:1;display:flex;align-items:center;justify-content:center;padding:var(--space-6);background:var(--bg-base);overflow-y:auto;}
+.login-card{width:100%;max-width:420px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-8);box-shadow:var(--shadow-xl);animation:scaleIn var(--dur-slow) var(--ease-out);}
+.login-card .auth-brand{margin-bottom:var(--space-6);}
+.login-card .auth-brand-text h1{font-size:18px;}
+.login-card .auth-brand-text p{font-size:13px;}
+.login-card .auth-logo{width:40px;height:40px;}
+.login-card .field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+.login-card .btn{background:var(--accent);}
+.login-card .btn:hover{background:var(--accent-hover);}
+.login-card .auth-switch a{color:var(--accent);}
+
+@media(max-width:900px){
+  .login-left{display:none;}
+  .login-right{padding:var(--space-4);}
+  .login-card{padding:var(--space-6);margin:var(--space-2);}
+}
+
 </style>
 <base target="_blank">
 <base target="_blank">
@@ -434,37 +468,105 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 </div>
 
 <!-- LOGIN -->
-<div class="auth-wrap" id="loginScreen">
-  <div class="auth-card">
-    <div class="auth-brand">
-      <div class="auth-logo">GPC</div>
-      <div class="auth-brand-text"><h1>Field Survey Register</h1><p>Punjab Land Records Authority</p></div>
+<div class="login-split" id="loginScreen">
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="login-brand-icon">GPC</div>
+      <div class="login-brand-text"><h1>Green Property Certificate</h1><p>Survey Data Management</p></div>
     </div>
-    <div class="auth-eyebrow">Secure Access Portal</div>
-    <h2>Sign In</h2>
-    <p class="sub">Access your survey dashboard and manage PSID records securely.</p>
-    <div class="auth-error" id="loginError"></div>
-    <div class="field"><label>Username</label><input type="text" id="loginUsername" autocomplete="username" placeholder="e.g. nasrullah"></div>
-    <div class="field"><label>PIN / Password</label><input type="password" id="loginPin" autocomplete="current-password" placeholder="At least 6 characters"></div>
-    <button class="btn block" onclick="doLogin()">Sign In</button>
+    <div class="login-features">
+      <div class="login-feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        <div><h4>Centralized Records</h4><p>Store all survey data in one secure place</p></div>
+      </div>
+      <div class="login-feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <div><h4>Real-time Progress</h4><p>Track field progress and team performance</p></div>
+      </div>
+      <div class="login-feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        <div><h4>Advanced Insights</h4><p>Visualize data and generate meaningful reports</p></div>
+      </div>
+      <div class="login-feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div><h4>Data Security</h4><p>Role-based access and secure data management</p></div>
+      </div>
+    </div>
+    <div class="login-partners">
+      <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.05em;">Powered by</span>
+      <span style="font-size:13px;font-weight:700;color:#fff;">PULSE</span>
+      <span style="color:rgba(255,255,255,0.4);">|</span>
+      <span style="font-size:13px;font-weight:700;color:#fff;">PLRA</span>
+      <span style="color:rgba(255,255,255,0.4);">|</span>
+      <span style="font-size:13px;font-weight:700;color:#fff;">GPC</span>
+    </div>
+  </div>
+  <div class="login-right">
+    <div class="login-card">
+      <div class="auth-brand">
+        <div class="auth-logo">GPC</div>
+        <div class="auth-brand-text"><h1>Field Survey Register</h1><p>Punjab Land Records Authority</p></div>
+      </div>
+      <div class="auth-eyebrow">Secure Access Portal</div>
+      <h2>Sign In</h2>
+      <p class="sub">Access your survey dashboard and manage PSID records securely.</p>
+      <div class="auth-error" id="loginError"></div>
+      <div class="field"><label>Username</label><input type="text" id="loginUsername" autocomplete="username" placeholder="e.g. nasrullah"></div>
+      <div class="field"><label>PIN / Password</label><input type="password" id="loginPin" autocomplete="current-password" placeholder="At least 6 characters"></div>
+      <button class="btn block" onclick="doLogin()">Sign In</button>
+    </div>
   </div>
 </div>
 
 <!-- BOOTSTRAP -->
-<div class="auth-wrap" id="bootstrapScreen">
-  <div class="auth-card">
-    <div class="auth-brand">
-      <div class="auth-logo">GPC</div>
-      <div class="auth-brand-text"><h1>Field Survey Register</h1><p>Punjab Land Records Authority</p></div>
+<div class="login-split" id="bootstrapScreen">
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="login-brand-icon">GPC</div>
+      <div class="login-brand-text"><h1>Green Property Certificate</h1><p>Survey Data Management</p></div>
     </div>
-    <div class="auth-eyebrow">First-Time Setup</div>
-    <h2>Create Admin Account</h2>
-    <p class="sub">No accounts exist yet. Create the first admin account — new team members are added from Manage Users afterward.</p>
-    <div class="auth-error" id="bootstrapError"></div>
-    <div class="field"><label>Your Name</label><input type="text" id="bsName" placeholder="Nasrullah"></div>
-    <div class="field"><label>Username</label><input type="text" id="bsUsername" placeholder="nasrullah"></div>
-    <div class="field"><label>PIN / Password (min 6 chars)</label><input type="password" id="bsPin" placeholder="Choose a PIN"></div>
-    <button class="btn block" onclick="doBootstrap()">Create Admin Account</button>
+    <div class="login-features">
+      <div class="login-feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        <div><h4>Centralized Records</h4><p>Store all survey data in one secure place</p></div>
+      </div>
+      <div class="login-feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <div><h4>Real-time Progress</h4><p>Track field progress and team performance</p></div>
+      </div>
+      <div class="login-feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        <div><h4>Advanced Insights</h4><p>Visualize data and generate meaningful reports</p></div>
+      </div>
+      <div class="login-feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div><h4>Data Security</h4><p>Role-based access and secure data management</p></div>
+      </div>
+    </div>
+    <div class="login-partners">
+      <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.05em;">Powered by</span>
+      <span style="font-size:13px;font-weight:700;color:#fff;">PULSE</span>
+      <span style="color:rgba(255,255,255,0.4);">|</span>
+      <span style="font-size:13px;font-weight:700;color:#fff;">PLRA</span>
+      <span style="color:rgba(255,255,255,0.4);">|</span>
+      <span style="font-size:13px;font-weight:700;color:#fff;">GPC</span>
+    </div>
+  </div>
+  <div class="login-right">
+    <div class="login-card">
+      <div class="auth-brand">
+        <div class="auth-logo">GPC</div>
+        <div class="auth-brand-text"><h1>Field Survey Register</h1><p>Punjab Land Records Authority</p></div>
+      </div>
+      <div class="auth-eyebrow">First-Time Setup</div>
+      <h2>Create Admin Account</h2>
+      <p class="sub">No accounts exist yet. Create the first admin account — new team members are added from Manage Users afterward.</p>
+      <div class="auth-error" id="bootstrapError"></div>
+      <div class="field"><label>Your Name</label><input type="text" id="bsName" placeholder="Nasrullah"></div>
+      <div class="field"><label>Username</label><input type="text" id="bsUsername" placeholder="nasrullah"></div>
+      <div class="field"><label>PIN / Password (min 6 chars)</label><input type="password" id="bsPin" placeholder="Choose a PIN"></div>
+      <button class="btn block" onclick="doBootstrap()">Create Admin Account</button>
+    </div>
   </div>
 </div>
 
@@ -583,7 +685,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
               <div class="kpi-value" id="kpiOverdue">0</div>
               <div class="kpi-sub">&gt;14 days open</div>
             </div>
-            <div class="kpi-card" style="--kpi-accent:#7c3aed;--kpi-accent-bg:#f5f3ff;">
+            <div class="kpi-card" style="--kpi-accent:#1a5c2a;--kpi-accent-bg:#ecfdf5;">
               <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
               <div class="kpi-label">Completion</div>
               <div class="kpi-value" id="kpiProgress">0%</div>
@@ -1462,7 +1564,7 @@ function renderDailyCharts() {
   });
   if (charts.dailyLogged) charts.dailyLogged.destroy();
   charts.dailyLogged = new Chart(document.getElementById('chartDailyLogged'), {
-    type: 'bar', data: { labels: dLabels, datasets: [{ label: 'Logged', data: logged, backgroundColor: '#2563eb', borderRadius: 6 }] },
+    type: 'bar', data: { labels: dLabels, datasets: [{ label: 'Logged', data: logged, backgroundColor: '#1a5c2a', borderRadius: 6 }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: muted, font: { size: 11 } }, grid: { display: false } }, y: { ticks: { color: muted, font: { size: 11 }, precision: 0 }, grid: { color: line }, beginAtZero: true } } }
   });
 }
@@ -1528,7 +1630,7 @@ function renderCharts() {
     type: 'bar',
     data: { labels: dLabels, datasets: [
       { label: 'PSIDs Completed', data: completed, backgroundColor: '#059669', borderRadius: 6 },
-      { label: 'PSIDs Logged', data: logged, backgroundColor: '#2563eb', borderRadius: 6 },
+      { label: 'PSIDs Logged', data: logged, backgroundColor: '#1a5c2a', borderRadius: 6 },
       { label: 'Parcels Created', data: parcels, backgroundColor: '#0891b2', borderRadius: 6 }
     ]},
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: muted, font: { size: 12 }, usePointStyle: true, padding: 16 } } }, scales: { x: { ticks: { color: muted, font: { size: 11 } }, grid: { display: false } }, y: { ticks: { color: muted, font: { size: 11 }, precision: 0 }, grid: { color: line }, beginAtZero: true } } }
