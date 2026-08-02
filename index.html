@@ -412,7 +412,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 /* Split Login Layout */
 .login-split{position:fixed;inset:0;display:flex;z-index:90;background:url('./login-bg.png') center center/cover no-repeat;}
 .login-split::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(26,92,42,0.15) 0%,rgba(26,92,42,0.55) 100%);pointer-events:none;}
-.login-left{flex:1.2;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:var(--space-8);z-index:1;}
+.login-left{flex:1.2;position:relative;display:flex;flex-direction:column;padding:var(--space-8);z-index:1;}
 .login-brand{display:flex;align-items:center;gap:var(--space-3);background:rgba(255,255,255,0.95);width:fit-content;padding:10px 18px 10px 10px;border-radius:var(--radius);box-shadow:var(--shadow-lg);}
 .login-brand-icon{width:44px;height:44px;background:linear-gradient(135deg,#1a5c2a,#2d7a3e);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;flex-shrink:0;}
 .login-brand-text h1{font-size:17px;font-weight:700;color:#0f172a;letter-spacing:-0.01em;}
@@ -422,7 +422,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 .login-feature svg{width:22px;height:22px;color:#a7f3d0;flex-shrink:0;margin-top:2px;}
 .login-feature div h4{font-size:13px;font-weight:600;color:#fff;margin-bottom:2px;}
 .login-feature div p{font-size:12px;color:rgba(255,255,255,0.75);line-height:1.4;}
-.login-partners{display:flex;align-items:center;gap:var(--space-4);background:rgba(255,255,255,0.95);padding:10px 20px;border-radius:var(--radius);box-shadow:var(--shadow-lg);width:fit-content;}
+.login-partners{position:absolute;right:var(--space-8);bottom:var(--space-8);z-index:2;display:flex;align-items:center;gap:var(--space-4);background:rgba(255,255,255,0.95);padding:10px 20px;border-radius:var(--radius);box-shadow:var(--shadow-lg);width:fit-content;}
 .login-partners img{height:30px;width:auto;object-fit:contain;display:block;}
 .login-partners .divider{width:1px;height:26px;background:#e2e8f0;flex-shrink:0;}
 .login-right{flex:1;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:var(--space-6);overflow-y:auto;}
@@ -443,10 +443,12 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
 .login-card .auth-switch a{color:var(--accent);}
 
 @media(max-width:900px){
+  .login-split{flex-direction:column;overflow-y:auto;}
   .login-left{display:none;}
   .login-split::before{background:linear-gradient(180deg,rgba(15,23,42,0.25) 0%,rgba(15,23,42,0.5) 100%);}
-  .login-right{padding:var(--space-4);}
-  .login-card{padding:var(--space-6);margin:var(--space-2);}
+  .login-right{order:1;flex:none;padding:var(--space-6) var(--space-4) var(--space-2);}
+  .login-card{padding:var(--space-6);margin:var(--space-2) auto;}
+  .login-partners{position:static;order:2;align-self:center;margin:0 auto var(--space-6);}
 }
 
 </style>
@@ -481,13 +483,6 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
       <div class="login-brand-icon">GPC</div>
       <div class="login-brand-text"><h1>Green Property Certificate</h1><p>Field Survey Data Manager</p></div>
     </div>
-    <div class="login-partners">
-      <img src="./pulse-logo.png" alt="PULSE">
-      <div class="divider"></div>
-      <img src="./plra-logo.png" alt="PLRA">
-      <div class="divider"></div>
-      <img src="./spatio-logo.jpg" alt="The Spatio">
-    </div>
   </div>
   <div class="login-right">
     <div class="login-card">
@@ -504,6 +499,13 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
       <button class="btn block" onclick="doLogin()">Sign In</button>
     </div>
   </div>
+  <div class="login-partners">
+    <img src="./pulse-logo.png" alt="PULSE">
+    <div class="divider"></div>
+    <img src="./plra-logo.png" alt="PLRA">
+    <div class="divider"></div>
+    <img src="./spatio-logo.jpg" alt="The Spatio">
+  </div>
 </div>
 
 <!-- BOOTSTRAP -->
@@ -512,13 +514,6 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
     <div class="login-brand">
       <div class="login-brand-icon">GPC</div>
       <div class="login-brand-text"><h1>Green Property Certificate</h1><p>Field Survey Data Manager</p></div>
-    </div>
-    <div class="login-partners">
-      <img src="./pulse-logo.png" alt="PULSE">
-      <div class="divider"></div>
-      <img src="./plra-logo.png" alt="PLRA">
-      <div class="divider"></div>
-      <img src="./spatio-logo.jpg" alt="The Spatio">
     </div>
   </div>
   <div class="login-right">
@@ -536,6 +531,13 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
       <div class="field"><label>PIN / Password (min 6 chars)</label><input type="password" id="bsPin" placeholder="Choose a PIN"></div>
       <button class="btn block" onclick="doBootstrap()">Create Admin Account</button>
     </div>
+  </div>
+  <div class="login-partners">
+    <img src="./pulse-logo.png" alt="PULSE">
+    <div class="divider"></div>
+    <img src="./plra-logo.png" alt="PLRA">
+    <div class="divider"></div>
+    <img src="./spatio-logo.jpg" alt="The Spatio">
   </div>
 </div>
 
