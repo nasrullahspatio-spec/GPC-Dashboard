@@ -788,6 +788,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
               <span class="chip" data-filter="survey" onclick="filterIssues('survey')">Survey Remarks</span>
             </div>
             <span class="tally">Total: <b id="issuesTotalCount">0</b> · Calling: <b style="color:var(--warning);" id="issuesCallingCount">0</b> · Survey: <b style="color:var(--danger);" id="issuesSurveyCount">0</b></span>
+            <button class="btn secondary small" style="margin-left:auto;" onclick="exportIssuesCsv()">⬇ Export CSV</button>
           </div>
           <div class="filter-bar"><input type="text" class="ipt search" id="issuesSearch" placeholder="Search PSID, owner, district, or remark text…" oninput="renderIssues()"></div>
           <div class="table-wrap"><div class="table-scroll"><table>
@@ -808,6 +809,7 @@ td.italic-remark{font-style:italic;color:var(--text-tertiary);max-width:300px;ov
             </select>
             <select class="ipt" id="regFilterSurveyor" onchange="filterRegister()"><option value="">All Surveyors</option></select>
             <span class="tally">Showing <b id="regShowing">0</b> of <b id="regTotal">0</b></span>
+            <button class="btn secondary small" onclick="exportRegisterCsv()">⬇ Export CSV</button>
           </div>
           <div class="table-wrap"><div class="table-scroll"><table>
             <thead><tr><th>PSID</th><th>District</th><th>Tehsil</th><th>Mouza</th><th>Khasra</th><th>Owner</th><th>Surveyor</th><th>Status</th><th>Parcels</th><th>Method</th><th>Days Open</th><th>Remarks</th><th></th></tr></thead>
@@ -1726,6 +1728,65 @@ function renderRegister() {
 }
 
 function changeRegPage(dir) { var totalPages = Math.ceil(filteredReg.length / regPerPage) || 1; regPage = Math.max(1, Math.min(totalPages, regPage + dir)); renderRegister(); }
+
+// ---------- CSV export ----------
+// Downloads whatever is CURRENTLY FILTERED, not the whole dataset - if
+// someone has narrowed to one district/status/search term, the export
+// matches exactly what they're looking at on screen.
+function csvCell(v){
+  var s = safeStr(v);
+  if (s.indexOf('"') >= 0 || s.indexOf(',') >= 0 || s.indexOf('\n') >= 0 || s.indexOf('\r') >= 0) {
+    s = '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+function downloadCsv(filenameBase, headers, rows){
+  if (rows.length === 0) { showToast('Nothing to export - no rows match the current filters.', 'warn'); return; }
+  var lines = [headers.map(csvCell).join(',')];
+  for (var i = 0; i < rows.length; i++) lines.push(rows[i].map(csvCell).join(','));
+  // UTF-8 BOM so Excel renders Urdu/Roman-Urdu text correctly instead of mojibake
+  var blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = filenameBase + '_' + stamp + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  showToast('Exported ' + rows.length + ' row' + (rows.length===1?'':'s') + ' to CSV.', 'success');
+}
+
+function exportRegisterCsv(){
+  var headers = ['PSID','District','Tehsil','Mouza','Khasra Number','Owner Name','Contact Number',
+    'Date of Assign','Surveyor Name','Survey Status','Number of Parcels Created','Survey Completed Date',
+    'Surveyed By DGPS or Mobile','Calling Remarks','Survey Remarks','Days Open','Created By','Last Updated By'];
+  var rows = filteredReg.map(function(o){
+    var r = o.r;
+    return [
+      r.psid||'', r.district||'', r.tehsil||'', r.mouza||'', r.khasraNumber||'', r.ownerName||'', r.contactNumber||'',
+      r.dateOfAssign||'', r.surveyorName||'', r.surveyStatus||'', r.numberOfParcelsCreated||0, r.surveyCompletedDate||'',
+      r.surveyedByDgpsOrMobile||'', r.callingRemarks||'', r.surveyRemarks||'',
+      daysOpenLabel(r).replace(/[✓⚑]/g,'').trim(), r.createdByName||'', r.updatedByName||''
+    ];
+  });
+  downloadCsv('gpc_survey_register', headers, rows);
+}
+
+function exportIssuesCsv(){
+  var search = safeLower(document.getElementById('issuesSearch').value);
+  var rows = processed.issuesRows.filter(function(r) {
+    if (issuesFilter !== 'all' && r.type.toLowerCase() !== issuesFilter) return false;
+    if (!search) return true;
+    return safeLower(r.psid).indexOf(search) >= 0 || safeLower(r.district).indexOf(search) >= 0 || safeLower(r.remark).indexOf(search) >= 0;
+  });
+  var headers = ['PSID','District','Surveyor','Status','Remark Type','Remark'];
+  var data = rows.map(function(r){
+    return [r.psid||'', r.district||'', r.surveyorName||'', r.status||'', r.type||'', r.remark||''];
+  });
+  downloadCsv('gpc_flagged_entries', headers, data);
+}
 function goToRegPage(p) { regPage = p; renderRegister(); }
 
 function switchTab(tab) {
